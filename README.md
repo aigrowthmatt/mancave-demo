@@ -9,11 +9,12 @@ After the first push:
 1. On GitHub: **Settings** → **Pages** (left sidebar).
 2. Under **Build and deployment** → **Source**, choose **Deploy from a branch**.
 3. **Branch**: `main`, folder **`/ (root)`** → **Save**.
-4. In a minute or two the demo will be at:
+4. After GitHub finishes building (usually within a couple of minutes), the demo is live at:
 
-   **`https://<your-username>.github.io/<repo-name>/`**
+   **https://aigrowthmatt.github.io/mancave-demo/**
 
-   (Root URL loads `index.html`, which sends you to `mancave2.html`.)
+   (Root loads `index.html`, which redirects to `mancave2.html`. Direct link:  
+   **https://aigrowthmatt.github.io/mancave-demo/mancave2.html**)
 
 ## Local preview
 
