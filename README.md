@@ -4,12 +4,9 @@ Static HTML prototype. Open **[mancave2.html](mancave2.html)** for the latest bu
 
 ## GitHub Pages
 
-After the first push:
+This repo is set to publish from the **`main`** branch, site root. (If you fork it, enable Pages under **Settings → Pages** the same way.)
 
-1. On GitHub: **Settings** → **Pages** (left sidebar).
-2. Under **Build and deployment** → **Source**, choose **Deploy from a branch**.
-3. **Branch**: `main`, folder **`/ (root)`** → **Save**.
-4. After GitHub finishes building (usually within a couple of minutes), the demo is live at:
+Live demo (give it a minute right after a fresh push):
 
    **https://aigrowthmatt.github.io/mancave-demo/**
 
