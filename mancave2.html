@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mancave</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --cave:#0a0a0a;--stone:#141414;--rock:#1c1c1c;--smoke:#2a2a2a;
+  --ash:#555;--silver:#888;--chalk:#e2ddd6;--white:#f4f0ea;
+  --ember:#c8400a;--ember2:#e05318;--gold:#c49a0a;--gold2:#e0b50e;
+  --teal:#0a8c7a;--purple:#6a3fa0;
+}
+html,body{height:100%;background:var(--cave);color:var(--white);font-family:'Barlow',sans-serif;overflow:hidden;}
+.app-shell{max-width:430px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;}
+.screen{display:none;flex-direction:column;flex:1;min-height:0;max-width:430px;margin:0 auto;position:relative;overflow:hidden;width:100%;}
+.screen.active{display:flex;animation:fadeUp .28s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* APP TOP (every screen) */
+.app-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:48px 20px 12px;background:var(--cave);flex-shrink:0;border-bottom:1px solid #1a1814;}
+.app-top-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.app-top-av-wrap{position:relative;flex-shrink:0;}
+.app-top-av{width:46px;height:46px;border-radius:50%;background:var(--smoke);border:2px solid var(--ember);font-size:28px;display:flex;align-items:center;justify-content:center;}
+.app-top-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;background:var(--ember);border-radius:50%;border:2px solid var(--cave);font-family:'Bebas Neue',sans-serif;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1;}
+.app-top-screen-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;line-height:1.05;}
+.app-top-screen-title em{color:var(--ember);font-style:normal;}
+.app-top-sub{font-size:11px;color:var(--ash);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.app-top-rocks{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--chalk);letter-spacing:1px;}
+.app-top-sub-mid{opacity:.4;}
+.app-top-hint{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#555;}
+.app-top-right{flex-shrink:0;}
+/* SHARED HEADER */
+.top-bar{flex-shrink:0;padding:48px 20px 0;position:relative;z-index:20;}
+.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.wordmark{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:4px;}
+.wordmark em{color:var(--ember);font-style:normal;}
+.top-actions{display:flex;gap:8px;align-items:center;}
+.icon-btn{width:36px;height:36px;background:var(--rock);border:1px solid var(--smoke);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .18s;}
+.icon-btn:hover{border-color:var(--ember);}
+.notif-badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(--ember);border-radius:50%;border:2px solid var(--cave);font-family:'Bebas Neue',sans-serif;font-size:11px;color:white;display:flex;align-items:center;justify-content:center;line-height:1;animation:badge-pop .4s cubic-bezier(0.34,1.6,0.64,1);}
+@keyframes badge-pop{from{transform:scale(0);}to{transform:scale(1);}}
+.profile-menu-wrap{position:relative;flex-shrink:0;}
+.profile-menu-wrap .app-top-av-wrap{cursor:pointer;}
+.profile-menu-wrap.open .app-top-av{border-color:var(--ember2);box-shadow:0 0 0 2px rgba(200,64,10,.18);}
+/* PROFILE DROPDOWN (anchored under user avatar) */
+.profile-dropdown{position:absolute;top:calc(100% + 10px);left:0;right:auto;width:min(292px,calc(100vw - 36px));background:#141414;border:1px solid #242424;border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,0.85);opacity:0;transform:translateY(-10px) scale(0.95);pointer-events:none;transition:all .22s cubic-bezier(0.34,1.2,0.64,1);z-index:500;max-height:80vh;overflow-y:auto;scrollbar-width:none;}
+.profile-dropdown::-webkit-scrollbar{display:none;}
+.profile-dropdown.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}
+.pd-head{padding:14px 16px;background:linear-gradient(135deg,#200e04,#141414);border-bottom:1px solid #1e1e1e;display:flex;align-items:center;gap:12px;}
+.pd-av-circle{width:44px;height:44px;border-radius:50%;border:2px solid var(--ember);background:var(--smoke);font-size:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pd-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;line-height:1;}
+.pd-vibe{font-size:11px;color:var(--ember);margin-top:2px;}
+/* CAVE ROCKS */
+.pd-score-bar{padding:10px 16px 12px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:10px;}
+.pd-score-flame{font-size:22px;line-height:1;flex-shrink:0;}
+.pd-score-info{flex:1;}
+.pd-score-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin-bottom:4px;}
+.pd-score-track{height:4px;background:#1e1e1e;border-radius:3px;overflow:hidden;}
+.pd-score-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#5a4a3a,var(--silver));}
+.pd-score-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--chalk);letter-spacing:1px;line-height:1;flex-shrink:0;}
+.pd-score-tag{font-size:10px;color:var(--ash);margin-top:3px;letter-spacing:.3px;}
+/* FEED ITEMS */
+.pd-feed-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #1a1a1a;cursor:pointer;transition:background .15s;position:relative;}
+.pd-feed-item:hover{background:#1a1a1a;}
+.pd-feed-item.unread{background:rgba(200,64,10,0.04);}
+.pd-feed-item.suggestion{background:rgba(10,140,122,0.04);}
+.pd-feed-av{width:36px;height:36px;border-radius:50%;background:var(--smoke);border:1.5px solid #2a2a2a;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+.pd-feed-av.unread-ring{border-color:var(--ember);}
+.pd-feed-av.suggest-ring{border-color:var(--teal);}
+.pd-unread-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--ember);border:1.5px solid #141414;}
+.pd-suggest-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--teal);border:1.5px solid #141414;}
+.pd-feed-body{flex:1;min-width:0;}
+.pd-feed-title{font-size:13px;color:var(--white);font-weight:600;line-height:1.3;}
+.pd-feed-sub{font-size:11px;color:var(--ash);margin-top:2px;line-height:1.3;}
+.pd-feed-time{font-size:10px;color:#333;margin-top:3px;}
+.pd-add-btn{width:28px;height:28px;background:var(--teal);border:none;border-radius:50%;color:white;font-size:20px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;line-height:1;padding-bottom:1px;}
+.pd-add-btn:hover{transform:scale(1.15);background:#0fb09a;}
+.pd-add-btn.ember-btn{background:var(--ember);}
+.pd-add-btn.ember-btn:hover{background:var(--ember2);}
+.pd-footer{padding:10px 14px 14px;display:flex;gap:8px;}
+.pd-footer-btn{flex:1;background:var(--rock);border:1px solid var(--smoke);border-radius:8px;padding:8px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:var(--silver);cursor:pointer;text-transform:uppercase;transition:all .18s;text-align:center;}
+.pd-footer-btn:hover{border-color:var(--ember);color:var(--ember);}
+.pd-footer-btn.red{border-color:#3a1a1a;color:#e05a5a;}
+.pd-footer-btn.red:hover{background:#1a0a0a;}
+/* NAV */
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,8,8,0.97);backdrop-filter:blur(20px);border-top:1px solid #1c1c1c;display:flex;z-index:100;padding:4px 0 26px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;cursor:pointer;border:none;background:none;color:var(--ash);font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;transition:color .18s;position:relative;}
+.nav-item.active{color:var(--ember);}
+.nav-item .ni{font-size:22px;line-height:1;}
+.nav-item.games-nav{color:#b83808;}
+.games-pip{position:absolute;top:7px;right:calc(50% - 20px);width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid #080808;animation:pip 2s ease-in-out infinite;}
+@keyframes pip{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.7;}}
+/* HEADER ADD (+) MENU */
+.header-add-wrap{position:relative;flex-shrink:0;}
+.header-add-btn{width:40px;height:40px;border-radius:12px;background:var(--ember);border:1px solid var(--ember2);color:#fff;font-size:26px;font-weight:300;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;transition:transform .22s cubic-bezier(0.34,1.4,0.64,1),background .18s,box-shadow .18s;box-shadow:0 4px 16px rgba(200,64,10,.35);}
+.header-add-btn:hover{background:var(--ember2);box-shadow:0 6px 20px rgba(200,64,10,.45);}
+.header-add-btn.rotated{transform:rotate(45deg);}
+.header-add-menu{position:absolute;top:calc(100% + 8px);right:0;width:232px;background:#141414;border:1px solid #242424;border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.85);opacity:0;transform:translateY(-8px);pointer-events:none;transition:all .2s cubic-bezier(0.34,1.2,0.64,1);z-index:500;}
+.header-add-menu.open{opacity:1;transform:translateY(0);pointer-events:all;}
+.header-add-item{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:none;background:transparent;color:var(--chalk);font-family:'Barlow',sans-serif;font-size:14px;text-align:left;cursor:pointer;border-bottom:1px solid #1a1a1a;transition:background .15s;}
+.header-add-item:last-child{border-bottom:none;}
+.header-add-item:hover{background:#1f1f1f;}
+/* CALENDAR HEADER */
+.cal-header{flex-shrink:0;padding:48px 20px 0;background:var(--cave);position:relative;z-index:10;}
+.cal-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.month-label{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:.9;letter-spacing:3px;}
+.month-year-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:4px;color:var(--ash);margin-top:2px;}
+.month-arrows{display:flex;gap:6px;}
+.arrow-btn{width:34px;height:34px;background:var(--rock);border:1px solid var(--smoke);border-radius:9px;color:var(--silver);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.arrow-btn:hover{background:var(--smoke);color:var(--white);}
+/* WEEK STRIP */
+.week-strip{flex-shrink:0;padding:4px 18px 0;}
+.week-days-row{display:flex;gap:4px;}
+.week-cell{flex:1;display:flex;flex-direction:column;align-items:center;padding:7px 2px 6px;border-radius:11px;cursor:pointer;border:1px solid transparent;transition:all .18s cubic-bezier(0.34,1.3,0.64,1);position:relative;min-width:0;}
+.week-cell:hover{background:var(--rock);}
+.week-cell.today{background:var(--smoke);border-color:#3a3a3a;}
+.week-cell.wc-sel{background:var(--ember)!important;border-color:var(--ember2)!important;box-shadow:0 4px 16px rgba(200,64,10,.4);transform:scale(1.06);}
+.week-cell.wc-bday{background:var(--gold)!important;border-color:var(--gold2)!important;box-shadow:0 4px 16px rgba(196,154,10,.4);transform:scale(1.06);}
+.wc-day{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;color:var(--ash);text-transform:uppercase;margin-bottom:2px;}
+.week-cell.wc-sel .wc-day,.week-cell.today .wc-day{color:rgba(255,255,255,.65);}
+.week-cell.wc-bday .wc-day{color:rgba(0,0,0,.55);}
+.wc-num{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:var(--silver);line-height:1;}
+.week-cell.wc-sel .wc-num{color:white;}
+.week-cell.today .wc-num{color:var(--white);}
+.week-cell.wc-bday .wc-num{color:#000;}
+.wc-icons{display:flex;gap:2px;justify-content:center;align-items:center;flex-wrap:wrap;min-height:14px;margin-top:3px;max-width:100%;}
+.wc-icon{font-size:9px;line-height:1;}
+.wc-icon.ev{filter:drop-shadow(0 0 2px rgba(200,64,10,.3));}
+.wc-bday-face{width:16px;height:16px;border-radius:50%;background:var(--smoke);border:1px solid var(--gold);font-size:9px;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.wc-bday-corner{position:absolute;top:2px;right:3px;font-size:8px;}
+/* PULL HANDLE */
+.cal-pull-wrap{flex-shrink:0;padding:6px 0 2px;display:flex;flex-direction:column;align-items:center;cursor:pointer;gap:3px;user-select:none;}
+.cal-pull-handle{width:30px;height:3px;background:#252525;border-radius:2px;transition:background .18s;}
+.cal-pull-wrap:hover .cal-pull-handle{background:#3a3a3a;}
+.cal-pull-label{font-family:'Barlow Condensed',sans-serif;font-size:8px;letter-spacing:2px;color:#282828;text-transform:uppercase;transition:color .18s;}
+.cal-pull-wrap:hover .cal-pull-label{color:var(--ash);}
+/* FULL CALENDAR OVERLAY */
+.full-cal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0);pointer-events:none;transition:background .28s ease;display:flex;align-items:flex-end;justify-content:center;}
+.full-cal-overlay.open{background:rgba(0,0,0,.72);pointer-events:all;}
+.full-cal-sheet{width:100%;max-width:430px;background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;padding:0 0 36px;transform:translateY(100%);transition:transform .32s cubic-bezier(0.34,1.05,0.64,1);}
+.full-cal-overlay.open .full-cal-sheet{transform:translateY(0);}
+.fcs-handle{width:36px;height:4px;background:#252525;border-radius:2px;margin:10px auto 14px;}
+.fcs-month-row{display:flex;align-items:center;justify-content:space-between;padding:0 20px;margin-bottom:10px;}
+.fcs-month-name{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;}
+.fcs-year{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:var(--ash);margin-top:1px;}
+.fcs-day-labels{display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;margin-bottom:4px;}
+.fcs-day-lbl{text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--ash);padding:2px 0;}
+.fcs-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 16px;}
+.fcs-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .15s cubic-bezier(0.34,1.3,0.64,1);border:1px solid transparent;overflow:hidden;}
+.fcs-cell:hover{background:var(--rock);}
+.fcs-cell.other{opacity:.22;cursor:default;pointer-events:none;}
+.fcs-cell-num{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;color:var(--silver);line-height:1;}
+.fcs-cell.fcs-today{background:var(--smoke);border-color:#3a3a3a;}
+.fcs-cell.fcs-today .fcs-cell-num{color:var(--white);}
+.fcs-cell.fcs-sel{background:var(--ember)!important;border-color:var(--ember2)!important;transform:scale(1.08)!important;}
+.fcs-cell.fcs-sel .fcs-cell-num{color:white!important;}
+.fcs-cell.fcs-bday-sel{background:var(--gold)!important;border-color:var(--gold2)!important;transform:scale(1.08)!important;}
+.fcs-cell.fcs-bday-sel .fcs-cell-num{color:#000!important;}
+.fcs-cell.has-bday::before{content:'';position:absolute;inset:1px;border-radius:6px;border:1px solid rgba(196,154,10,.22);pointer-events:none;}
+.fcs-cell-icons{display:flex;gap:1px;justify-content:center;min-height:9px;}
+.fcs-icon{font-size:7px;line-height:1;}
+.fcs-bday-av{position:absolute;top:1px;right:1px;font-size:7px;}
+/* PANEL */
+.panel-divider{flex-shrink:0;height:1px;background:linear-gradient(90deg,transparent,var(--smoke) 20%,var(--smoke) 80%,transparent);margin:6px 20px;}
+.events-panel{flex:1;overflow-y:auto;padding:0 20px 100px;scrollbar-width:none;}
+.events-panel::-webkit-scrollbar{display:none;}
+.panel-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;}
+.panel-date{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.panel-count{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;}
+.section-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin:4px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-lbl::after{content:'';flex:1;height:1px;background:#1e1e1e;}
+/* EVENT CARDS */
+.event-card{background:var(--stone);border:1px solid #1e1e1e;border-radius:12px;margin-bottom:9px;overflow:hidden;cursor:pointer;transition:all .2s cubic-bezier(0.34,1.2,0.64,1);animation:slideIn .26s ease both;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.event-card:hover{border-color:#2e2e2e;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.event-card-inner{display:flex;align-items:stretch;}
+.event-stripe{width:4px;flex-shrink:0;border-radius:12px 0 0 12px;}
+.stripe-ember{background:linear-gradient(180deg,var(--ember2),var(--ember));}
+.stripe-gold{background:linear-gradient(180deg,var(--gold2),var(--gold));}
+.stripe-teal{background:linear-gradient(180deg,#0fb09a,var(--teal));}
+.stripe-purple{background:linear-gradient(180deg,#8a5fc0,var(--purple));}
+.event-main{flex:1;padding:12px 12px 12px 14px;display:flex;align-items:center;gap:10px;}
+.event-emoji{font-size:24px;flex-shrink:0;}
+.event-info{flex:1;min-width:0;}
+.event-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-sub{font-size:11px;color:var(--ash);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.event-sub-sep{color:#333;}
+.event-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
+.av-cluster{display:flex;}
+.av-b{width:22px;height:22px;border-radius:50%;border:2px solid var(--stone);font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:-6px;background:var(--smoke);}
+.av-b:first-child{margin-left:0;}
+.av-b.more{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--ash);background:#1c1c1c;}
+.pill{border-radius:20px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid;transition:all .2s;white-space:nowrap;}
+.pill-going{background:rgba(200,64,10,.15);border-color:var(--ember);color:var(--ember2);}
+.pill-going:hover{background:var(--ember);color:white;}
+.pill-out{background:transparent;border-color:var(--smoke);color:var(--ash);}
+.pill-out:hover{border-color:#444;color:var(--silver);}
+.bday-card-special{background:linear-gradient(135deg,#1a1200,#141400 60%,var(--stone))!important;border-color:rgba(196,154,10,.2)!important;}
+.bday-av-circle{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#2a1500,#1a1000);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+/* SUGGEST CARDS */
+.suggest-card{background:var(--stone);border:1px solid rgba(10,140,122,.2);border-radius:12px;margin-bottom:9px;overflow:hidden;animation:slideIn .28s ease both;}
+.suggest-inner{display:flex;}
+.suggest-stripe{width:4px;flex-shrink:0;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#0fb09a,var(--teal));}
+.suggest-body{flex:1;padding:12px 12px 12px 14px;}
+.suggest-tag{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin-bottom:3px;}
+.suggest-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);margin-bottom:3px;}
+.suggest-desc{font-size:11px;color:var(--ash);margin-bottom:10px;line-height:1.4;}
+.date-vote-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:7px;}
+.date-opt{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:all .18s;}
+.date-opt.voted{border-color:var(--teal);background:rgba(10,140,122,.08);}
+.date-opt:hover{border-color:#333;}
+.date-opt-row{display:flex;align-items:center;justify-content:space-between;}
+.date-opt-date{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--white);}
+.date-opt-day{font-size:10px;color:var(--ash);margin-top:1px;}
+.date-opt-right{display:flex;align-items:center;gap:8px;}
+.date-voter-avs{display:flex;}
+.date-voter-av{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--stone);font-size:10px;display:flex;align-items:center;justify-content:center;margin-left:-4px;background:var(--smoke);}
+.date-voter-av:first-child{margin-left:0;}
+.vote-cnt{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--ash);}
+.vote-cnt.lead{color:var(--teal);}
+.vote-btn{border:1px solid #333;background:transparent;border-radius:6px;padding:3px 8px;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;color:var(--ash);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.vote-btn:hover,.vote-btn.voted{background:var(--teal);border-color:var(--teal);color:white;}
+.date-bar-wrap{height:2px;background:#1a1a1a;border-radius:2px;margin-top:7px;}
+.date-bar{height:100%;border-radius:2px;background:var(--teal);transition:width .4s ease;}
+/* GUYS */
+#screen-guys{background:var(--cave);}
+.guys-scroll{flex:1;overflow-y:auto;padding:0 20px 100px;scrollbar-width:none;}
+.guys-scroll::-webkit-scrollbar{display:none;}
+.bday-banner{background:linear-gradient(135deg,#1a1200,#111);border:1px solid rgba(196,154,10,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.bday-banner-icon{font-size:32px;filter:drop-shadow(0 2px 8px rgba(196,154,10,.4));}
+.bday-banner-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold);}
+.bday-banner-sub{font-size:12px;color:var(--ash);margin-top:1px;}
+.bday-banner-days{margin-left:auto;background:var(--gold);color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;padding:6px 11px;border-radius:8px;text-align:center;}
+.bday-banner-days small{display:block;font-family:'Barlow',sans-serif;font-size:9px;letter-spacing:1.5px;color:rgba(0,0,0,.6);}
+.guy-card{background:var(--stone);border:1px solid #1e1e1e;border-radius:12px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s;}
+.guy-card:hover{border-color:#2e2e2e;transform:translateX(3px);}
+.guy-av{width:46px;height:46px;border-radius:50%;background:var(--smoke);border:2px solid #2a2a2a;font-size:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.guy-info{flex:1;min-width:0;}
+.guy-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--white);}
+.guy-vibe{font-size:11px;color:var(--ash);margin-top:1px;}
+.guy-bday-pill{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;color:var(--gold);background:rgba(196,154,10,.1);border:1px solid rgba(196,154,10,.2);border-radius:12px;padding:2px 8px;margin-top:4px;display:inline-block;}
+/* MONTH LEADERS */
+.leaders-block{background:linear-gradient(145deg,#1a1510,#12100c);border:1px solid rgba(200,64,10,.35);border-radius:16px;padding:16px 16px 14px;margin-bottom:18px;position:relative;overflow:hidden;}
+.leaders-block::before{content:'';position:absolute;top:-40%;right:-20%;width:120px;height:120px;background:radial-gradient(circle,rgba(200,64,10,.12),transparent 70%);pointer-events:none;}
+.leaders-kicker{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ember);text-transform:uppercase;margin-bottom:4px;}
+.leaders-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1;margin-bottom:6px;}
+.leaders-sub{font-size:12px;color:var(--ash);line-height:1.35;margin-bottom:14px;}
+.leaders-row{display:flex;gap:10px;}
+.leader-spot{flex:1;background:var(--stone);border:1px solid #2a2420;border-radius:12px;padding:12px 10px;text-align:center;cursor:default;transition:transform .2s,border-color .2s;}
+.leader-spot:hover{border-color:rgba(200,64,10,.4);transform:translateY(-2px);}
+.leader-spot-av{font-size:36px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
+.leader-spot-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;}
+.leader-spot-role{font-size:10px;color:var(--ash);margin-top:3px;}
+.leaders-premium-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:4px;}
+.leader-card-x{background:linear-gradient(135deg,#2a1a0a,#161008);border:1px solid rgba(200,64,10,.45);border-radius:16px;padding:14px 16px;position:relative;overflow:hidden;}
+.leader-card-x::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(196,154,10,.15),transparent 70%);pointer-events:none;}
+.leader-card-x .lc-crown{font-size:22px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 2px 6px rgba(196,154,10,.5));}
+.leader-card-x .lc-month{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;}
+.leader-card-x .lc-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:4px 0 2px;}
+.leader-card-x .lc-duty{font-size:12px;color:var(--chalk);line-height:1.4;margin-bottom:10px;}
+.leader-card-x .lc-cta{background:rgba(200,64,10,.2);border:1px solid var(--ember);border-radius:10px;padding:8px 12px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--ember2);width:100%;cursor:pointer;}
+.leader-card-x .lc-cta:hover{background:rgba(200,64,10,.35);color:#fff;}
+.leaders-premium-wrap{margin-bottom:18px;}
+.leaders-kicker-premium{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.leaders-cards-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media (max-width:380px){.leaders-cards-row{grid-template-columns:1fr;}}
+.guy-av-cell{position:relative;flex-shrink:0;display:flex;align-items:center;justify-content:center;min-width:52px;}
+.guy-card.is-leader .guy-av{margin-top:6px;}
+.guy-av-wrap{position:relative;}
+.guy-crown{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:16px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6));z-index:2;}
+.guy-card.is-leader{border-color:rgba(196,154,10,.35);background:linear-gradient(135deg,#1a1510,#161616);}
+.guy-actions{display:flex;gap:7px;flex-shrink:0;}
+.poke-btn{width:34px;height:34px;background:var(--rock);border:1px solid var(--smoke);border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.poke-btn:hover{border-color:var(--ember);transform:scale(1.1);}
+.reward-btn{width:34px;height:34px;background:rgba(196,154,10,.1);border:1px solid rgba(196,154,10,.25);border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.reward-btn:hover{background:rgba(196,154,10,.2);border-color:var(--gold);}
+/* PROFILE SHEET */
+.profile-sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:400;align-items:flex-end;}
+.profile-sheet-overlay.open{display:flex;}
+.profile-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ps-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+.ps-hero{padding:16px 20px 14px;background:linear-gradient(180deg,#1f0e05,#111);border-bottom:1px solid #1e1e1e;flex-shrink:0;}
+.ps-hero-top{display:flex;align-items:flex-start;gap:12px;}
+.ps-av{width:52px;height:52px;border-radius:50%;border:2px solid var(--ember);background:var(--smoke);font-size:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ps-av.gold-border{border-color:var(--gold);}
+.ps-hero-main{flex:1;min-width:0;}
+.ps-name{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;line-height:1;}
+.ps-vibe{font-size:11px;color:var(--ember);margin-top:3px;}
+.ps-bday{font-size:11px;color:var(--ash);margin-top:2px;}
+.ps-hero-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.ps-icon-act{width:40px;height:40px;border-radius:10px;border:1px solid var(--smoke);background:var(--rock);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;line-height:1;padding:0;}
+.ps-icon-act:hover{border-color:var(--ember);background:#1f0e05;}
+.ps-icon-act .ps-plus{font-size:11px;font-weight:700;color:var(--ember);margin-left:1px;}
+.ps-rocks-strip{margin-top:12px;padding-top:10px;border-top:1px solid #252525;display:flex;align-items:center;gap:8px;}
+.ps-rocks-ico{font-size:20px;}
+.ps-rocks-copy{flex:1;}
+.ps-rocks-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;}
+.ps-rocks-val{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1;margin-top:2px;}
+.ps-rocks-hint{font-size:10px;color:#444;margin-top:3px;}
+.ps-scroll{flex:1;overflow-y:auto;padding:16px 20px 24px;scrollbar-width:none;}
+.ps-scroll::-webkit-scrollbar{display:none;}
+.ps-sec-title{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin:16px 0 10px;}
+.ps-sec-title:first-child{margin-top:0;}
+.ps-rewards-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.ps-rewards-scroll::-webkit-scrollbar{height:0;}
+.ps-reward-chip{flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--rock);border:1px solid var(--smoke);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:default;transition:all .2s;}
+.ps-reward-chip:hover{transform:scale(1.08);border-color:var(--gold);box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.ps-wall-box{background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:10px 12px;margin-bottom:12px;}
+.ps-wall-input{width:100%;background:transparent;border:none;color:var(--chalk);font-family:'Barlow',sans-serif;font-size:13px;resize:none;min-height:44px;line-height:1.4;}
+.ps-wall-input:focus{outline:none;}
+.ps-wall-actions{display:flex;justify-content:flex-end;margin-top:6px;}
+.ps-wall-post{background:var(--ember);border:none;border-radius:8px;padding:6px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:white;cursor:pointer;}
+.ps-wall-post:hover{background:var(--ember2);}
+.ps-ga-card{background:var(--stone);border:1px solid #1e1e1e;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.ps-ga-q{font-size:11px;color:var(--ash);margin-bottom:4px;}
+.ps-ga-a{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;color:var(--chalk);}
+.ps-ga-meta{font-size:10px;color:#444;margin-top:6px;}
+/* REWARD PICKER */
+.reward-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:600;align-items:flex-end;}
+.reward-overlay.open{display:flex;}
+.reward-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;padding:0 22px 48px;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.reward-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 18px;}
+.reward-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;}
+.reward-sub{font-size:13px;color:var(--ash);margin-bottom:18px;}
+.rewards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.reward-opt{background:var(--rock);border:1px solid var(--smoke);border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .2s;}
+.reward-opt:hover,.reward-opt.sel{border-color:var(--gold);background:rgba(196,154,10,.08);transform:scale(1.05);}
+.reward-opt-emoji{font-size:28px;display:block;margin-bottom:5px;}
+.reward-opt-name{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;color:var(--ash);text-transform:uppercase;}
+.reward-opt.sel .reward-opt-name{color:var(--gold);}
+.reward-send-btn{width:100%;background:var(--gold);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;opacity:.4;pointer-events:none;}
+.reward-send-btn.ready{opacity:1;pointer-events:all;box-shadow:0 4px 20px rgba(196,154,10,.35);}
+/* ADD GUY */
+.add-guy-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:600;align-items:flex-end;}
+.add-guy-overlay.open{display:flex;}
+.add-guy-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;padding:0 22px 48px;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.ag-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 18px;}
+.ag-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:16px;}
+.ag-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:6px;}
+.ag-input{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:15px;transition:border-color .18s;-webkit-appearance:none;margin-bottom:14px;}
+.ag-input:focus{outline:none;border-color:var(--ember);}
+.ag-input::placeholder{color:#333;}
+.ag-emoji-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.ag-emoji{width:40px;height:40px;background:var(--rock);border:1px solid var(--smoke);border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.ag-emoji:hover,.ag-emoji.sel{border-color:var(--ember);background:#1f0e05;}
+.ag-invite-methods{display:flex;gap:8px;margin-bottom:20px;}
+.ag-method{flex:1;background:var(--rock);border:1px solid var(--smoke);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .18s;}
+.ag-method:hover{border-color:var(--ember);}
+.ag-method-icon{font-size:22px;margin-bottom:4px;}
+.ag-method-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--ash);text-transform:uppercase;}
+.ag-submit{width:100%;background:var(--ember);color:white;border:none;border-radius:12px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;}
+.ag-submit:hover{background:var(--ember2);}
+/* GAMES */
+.games-header{padding:52px 22px 20px;background:linear-gradient(180deg,#1a0800,var(--cave));flex-shrink:0;}
+.games-logo{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:3px;line-height:1;}
+.games-logo span{color:var(--ember);}
+.games-sub{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:3px;color:var(--ash);margin-bottom:12px;}
+.season-badge{display:inline-flex;align-items:center;gap:6px;background:#1a1000;border:1px solid rgba(196,154,10,.3);border-radius:20px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;}
+.s-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pip 1.8s ease-in-out infinite;}
+.lb-strip{display:flex;gap:8px;overflow-x:auto;padding:14px 22px 4px;scrollbar-width:none;flex-shrink:0;}
+.lb-strip::-webkit-scrollbar{display:none;}
+.lb-card{flex-shrink:0;width:82px;background:var(--stone);border:1px solid #222;border-radius:12px;padding:10px 8px;text-align:center;}
+.lb-card.r1{background:linear-gradient(135deg,#1a1200,#111);border-color:rgba(196,154,10,.4);}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;margin-bottom:3px;}
+.lb-rank.gold{color:var(--gold);}.lb-rank.silver{color:#aaa;}.lb-rank.bronze{color:#c87040;}.lb-rank.reg{color:var(--ash);}
+.lb-av{width:32px;height:32px;border-radius:50%;margin:0 auto 3px;border:2px solid #333;background:var(--smoke);font-size:20px;display:flex;align-items:center;justify-content:center;}
+.lb-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;}
+.lb-pts{font-size:10px;color:var(--ash);margin-top:1px;}
+.lb-pts strong{color:var(--ember);font-size:12px;}
+.lb-rocks-lbl{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.games-lb{margin:0 -6px 0;padding:10px 16px 12px;border-bottom:1px solid #1a1814;}
+.games-lb .lb-card{direction:ltr;}
+.games-lb.lb-rtl{direction:rtl;}
+.games-lb.lb-rtl .lb-card{direction:ltr;}
+.games-scroll{flex:1;overflow-y:auto;padding:14px 22px 100px;scrollbar-width:none;}
+.games-scroll::-webkit-scrollbar{display:none;}
+.game-card{background:var(--stone);border:1px solid #1e1e1e;border-radius:14px;margin-bottom:11px;cursor:pointer;overflow:hidden;transition:all .2s;}
+.game-card:hover{border-color:#2e2e2e;transform:translateY(-2px);}
+.game-card-inner{display:flex;}
+.ga{width:5px;flex-shrink:0;border-radius:14px 0 0 14px;}
+.ga-ember{background:linear-gradient(180deg,#ff6030,var(--ember));}.ga-gold{background:linear-gradient(180deg,var(--gold2),var(--gold));}.ga-teal{background:linear-gradient(180deg,#20d0b0,var(--teal));}.ga-purple{background:linear-gradient(180deg,#9060d0,var(--purple));}
+.game-body{flex:1;padding:14px 14px 14px 16px;}
+.game-name-row{display:flex;align-items:center;gap:9px;margin-bottom:3px;}
+.g-icon{font-size:24px;}.g-name{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:2px;line-height:1;}
+.g-tag{font-size:12px;color:var(--ash);line-height:1.4;margin-bottom:8px;}
+.g-meta{display:flex;gap:7px;flex-wrap:wrap;}
+.g-chip{background:#0d0d0d;border:1px solid #222;border-radius:20px;padding:3px 9px;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;color:var(--silver);text-transform:uppercase;display:flex;align-items:center;gap:3px;}
+.g-chip.live{border-color:rgba(200,64,10,.4);color:var(--ember);}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--ember);animation:pip 1.4s ease-in-out infinite;}
+.ac-wrap{background:linear-gradient(135deg,#1f0e05,#141414);border:1px solid rgba(200,64,10,.25);border-radius:14px;padding:16px;margin-bottom:14px;}
+.ac-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ember);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.ac-q{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1.1;margin-bottom:12px;}
+.ac-opts{display:flex;flex-direction:column;gap:7px;}
+.ac-opt{background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between;font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--chalk);}
+.ac-opt:hover{border-color:var(--ember);}.ac-opt.picked{background:rgba(200,64,10,.12);border-color:var(--ember);}
+.ac-opt-odds{font-size:10px;color:var(--ash);}
+.ac-footer{margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.ac-footer-text{font-size:11px;color:var(--ash);}
+.ac-submit{background:var(--ember);border:none;border-radius:7px;padding:7px 16px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:white;cursor:pointer;opacity:.4;pointer-events:none;}
+.ac-submit.ready{opacity:1;pointer-events:all;}
+/* NEW EVENT */
+.ne-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;align-items:flex-end;}
+.ne-overlay.open{display:flex;}
+.ne-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;padding:0 0 48px;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .33s cubic-bezier(0.34,1.1,0.64,1);max-height:92vh;display:flex;flex-direction:column;}
+.ne-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:11px auto 0;}
+.ne-header{padding:14px 22px 12px;border-bottom:1px solid #1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.ne-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;}
+.ne-close{width:30px;height:30px;background:var(--rock);border:1px solid var(--smoke);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+.ne-scroll{flex:1;overflow-y:auto;padding:16px 22px 0;scrollbar-width:none;}
+.ne-scroll::-webkit-scrollbar{display:none;}
+.ne-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;display:block;margin-bottom:6px;}
+.ne-input{width:100%;background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:14px;transition:border-color .18s;-webkit-appearance:none;margin-bottom:14px;}
+.ne-input:focus{outline:none;border-color:var(--ember);}
+.ne-input::placeholder{color:#2e2e2e;}
+textarea.ne-input{resize:none;height:64px;line-height:1.5;}
+.ne-type-row{display:flex;gap:7px;margin-bottom:14px;}
+.type-btn{flex:1;padding:9px 4px;background:var(--rock);border:1px solid var(--smoke);border-radius:9px;cursor:pointer;text-align:center;transition:all .18s;}
+.type-btn.sel{background:#1f0e05;border-color:var(--ember);}
+.type-btn-icon{font-size:18px;display:block;margin-bottom:3px;}
+.type-btn-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;color:var(--ash);text-transform:uppercase;}
+.type-btn.sel .type-btn-lbl{color:var(--ember);}
+.emoji-strip{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.e-pick{width:38px;height:38px;background:var(--rock);border:1px solid var(--smoke);border-radius:9px;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.e-pick:hover,.e-pick.sel{border-color:var(--ember);background:#1f0e05;}
+.ne-date-row{display:flex;gap:9px;margin-bottom:14px;}
+.ne-date-row .ne-input{flex:1;margin-bottom:0;}
+.ne-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:#0d0d0d;border:1px solid #222;border-radius:9px;margin-bottom:14px;cursor:pointer;}
+.toggle-lbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--chalk);}
+.toggle-sub{font-size:10px;color:var(--ash);margin-top:2px;}
+.tog{width:40px;height:22px;background:#222;border-radius:11px;position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(--teal);}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);}
+.tog.on::after{transform:translateX(18px);}
+.poll-date-rows{margin-bottom:7px;}
+.poll-row{display:flex;gap:8px;margin-bottom:8px;}
+.poll-row .ne-input{flex:1;margin-bottom:0;}
+.ne-poll-add{background:transparent;border:1px dashed #2a2a2a;border-radius:9px;padding:9px;color:var(--ash);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;width:100%;cursor:pointer;transition:all .18s;margin-bottom:14px;}
+.ne-poll-add:hover{border-color:#444;color:var(--silver);}
+.invite-strip{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px;}
+.inv-chip{display:flex;align-items:center;gap:5px;background:var(--rock);border:1px solid var(--smoke);border-radius:20px;padding:5px 11px 5px 7px;cursor:pointer;transition:all .18s;}
+.inv-chip:hover,.inv-chip.sel{border-color:var(--ember);background:#1a0a04;}
+.inv-av{font-size:17px;}.inv-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--chalk);}
+.inv-chip.sel .inv-name{color:var(--ember);}
+.ne-submit{width:calc(100% - 44px);margin:14px 22px 0;background:var(--ember);color:white;border:none;border-radius:12px;padding:15px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(200,64,10,.35);flex-shrink:0;}
+.ne-submit:hover{background:var(--ember2);}
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);z-index:500;align-items:flex-end;}
+.overlay.open{display:flex;}
+.sheet{background:#141414;border:1px solid #242424;border-bottom:none;border-radius:20px 20px 0 0;padding:10px 24px 48px;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);max-height:85vh;overflow-y:auto;}
+.sheet::-webkit-scrollbar{display:none;}
+.sh-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:8px auto 18px;}
+.sh-type{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;}
+.sh-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;line-height:1;margin-bottom:5px;}
+.sh-date{font-size:13px;color:var(--ash);margin-bottom:18px;}
+.sh-div{height:1px;background:#1e1e1e;margin:14px 0;}
+.sh-body{font-size:13px;color:#999;line-height:1.65;}
+.who-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--ash);margin-bottom:9px;text-transform:uppercase;}
+.who-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+.who-chip{display:flex;align-items:center;gap:5px;background:var(--rock);border:1px solid var(--smoke);border-radius:20px;padding:5px 11px 5px 6px;font-size:12px;color:var(--chalk);}
+.who-av-sm{width:22px;height:22px;border-radius:50%;background:var(--smoke);font-size:13px;display:flex;align-items:center;justify-content:center;}
+.sh-toolbar{display:flex;gap:8px;margin-bottom:12px;}
+.sh-tool-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--rock);border:1px solid var(--smoke);border-radius:10px;padding:9px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--chalk);cursor:pointer;transition:all .18s;}
+.sh-tool-btn:hover{border-color:var(--ember);color:var(--ember2);}
+.who-avatars-only{display:flex;align-items:center;gap:0;margin-bottom:16px;flex-wrap:wrap;}
+.who-av-only{width:40px;height:40px;border-radius:50%;border:2px solid var(--stone);background:var(--smoke);font-size:22px;display:flex;align-items:center;justify-content:center;margin-left:-10px;cursor:default;transition:transform .15s;}
+.who-av-only:first-child{margin-left:0;}
+.who-av-only:hover{transform:scale(1.12);z-index:2;border-color:var(--ember);}
+.who-av-only.more{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--ash);}
+.event-wall{margin-top:4px;}
+.wall-hype{font-size:12px;color:var(--ash);margin-bottom:10px;line-height:1.4;}
+.wall-posts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
+.wall-post{background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:10px 12px;}
+.wall-post-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.wall-post-av{font-size:18px;}
+.wall-post-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;}
+.wall-post-time{font-size:10px;color:#333;margin-left:auto;}
+.wall-post-txt{font-size:12px;color:var(--chalk);line-height:1.45;}
+.wall-composer{display:flex;gap:8px;align-items:flex-end;background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:8px 10px;}
+.wall-composer textarea{flex:1;background:transparent;border:none;color:var(--chalk);font-size:12px;resize:none;min-height:36px;line-height:1.4;font-family:'Barlow',sans-serif;}
+.wall-composer textarea:focus{outline:none;}
+.wall-send{background:var(--ember);border:none;border-radius:8px;padding:8px 12px;font-size:16px;cursor:pointer;flex-shrink:0;}
+.wall-send:hover{background:var(--ember2);}
+.sh-rsvp-row{display:flex;gap:9px;}
+.btn-going{flex:1;background:var(--ember);color:white;border:none;border-radius:10px;padding:13px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;transition:all .18s;}
+.btn-going:hover{background:var(--ember2);}
+.btn-cant{background:var(--rock);border:1px solid var(--smoke);color:var(--silver);border-radius:10px;padding:13px 16px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;}
+/* SHARE + INVITE OVERLAYS */
+.share-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:620;align-items:flex-end;justify-content:center;}
+.share-overlay.open{display:flex;}
+.share-sheet{background:#121212;border:1px solid #2a2a2a;border-bottom:none;border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:12px 20px 36px;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.share-sheet-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;margin-bottom:4px;}
+.share-sheet-sub{font-size:12px;color:var(--ash);margin-bottom:16px;}
+.share-opt{display:flex;align-items:center;gap:14px;width:100%;background:var(--stone);border:1px solid #252525;border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;text-align:left;transition:all .18s;}
+.share-opt:hover{border-color:var(--ember);}
+.share-opt-ico{font-size:26px;}
+.share-opt-txt{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;}
+.share-opt-sub{display:block;font-size:11px;color:var(--ash);font-weight:400;margin-top:2px;}
+.share-dismiss{width:100%;margin-top:8px;background:transparent;border:1px solid #333;border-radius:10px;padding:11px;color:var(--ash);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;cursor:pointer;}
+.invite-share-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:630;flex-direction:column;}
+.invite-share-overlay.open{display:flex;}
+.invite-share-head{flex-shrink:0;padding:52px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222;background:var(--cave);}
+.invite-share-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.invite-share-x{width:36px;height:36px;border-radius:10px;border:1px solid var(--smoke);background:var(--rock);cursor:pointer;font-size:18px;color:var(--chalk);}
+.invite-share-scroll{flex:1;overflow-y:auto;padding:14px 20px 100px;}
+.invite-guy-row{display:flex;align-items:center;gap:12px;background:var(--stone);border:1px solid #1e1e1e;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+.invite-guy-av{width:44px;height:44px;border-radius:50%;background:var(--smoke);font-size:24px;display:flex;align-items:center;justify-content:center;}
+.invite-guy-info{flex:1;min-width:0;}
+.invite-guy-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;}
+.invite-guy-vibe{font-size:11px;color:var(--ash);}
+.invite-add-btn{width:40px;height:40px;border-radius:50%;border:1px dashed var(--smoke);background:transparent;color:var(--ember);font-size:22px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;line-height:1;}
+.invite-add-btn::before{content:'+';}
+.invite-add-btn:hover,.invite-add-btn.on{border-style:solid;border-color:var(--ember);background:rgba(200,64,10,.15);}
+.invite-add-btn.on::before{content:'✓';font-size:17px;font-weight:700;}
+/* GAMES SWIPE DECK */
+.games-header-slim{padding:46px 0 0;background:linear-gradient(180deg,#140a04,var(--cave));flex-shrink:0;}
+.games-me-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 20px 10px;border-bottom:1px solid #1e1a16;}
+.games-me-ident{display:flex;align-items:center;gap:10px;min-width:0;}
+.games-me-av{width:44px;height:44px;border-radius:50%;background:var(--smoke);border:2px solid var(--ember);font-size:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.games-me-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;line-height:1;}
+.games-me-sub{font-size:10px;color:var(--ash);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.games-me-rocks{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(145deg,#1a1612,#12100c);border:1px solid rgba(120,100,80,.45);border-radius:22px;padding:8px 16px 8px 12px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;flex-shrink:0;transition:transform .2s;box-shadow:0 4px 16px rgba(0,0,0,.35);}
+.games-rock-ico{font-size:20px;line-height:1;}
+.games-me-rocks.bump{animation:rockBump .5s cubic-bezier(0.34,1.4,0.64,1);}
+.games-logo-row{padding:10px 20px 2px;font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;line-height:1;}
+.games-logo-row span{color:var(--ember);}
+.games-header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.games-rocks-hud{display:inline-flex;align-items:center;gap:8px;background:#14100c;border:1px solid rgba(90,74,58,.5);border-radius:22px;padding:6px 14px 6px 10px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;transition:transform .2s;}
+.games-rocks-hud.bump{animation:rockBump .5s cubic-bezier(0.34,1.4,0.64,1);}
+.app-top-rocks{display:inline-flex;align-items:center;gap:2px;transition:transform .2s;}
+.app-top-rocks.bump{animation:rockBump .5s cubic-bezier(0.34,1.4,0.64,1);}
+@keyframes rockBump{0%{transform:scale(1);}40%{transform:scale(1.12);}100%{transform:scale(1);}}
+.games-deck-wrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 18px 100px;position:relative;overflow:hidden;}
+.games-deck-hint{text-align:center;font-size:10px;color:#333;letter-spacing:2px;text-transform:uppercase;margin-top:auto;padding-top:12px;}
+.games-deck{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:320px;perspective:800px;}
+.gc-card{position:absolute;width:100%;max-width:380px;background:linear-gradient(168deg,#242018 0%,#161410 45%,#0e0c0a 100%);border:1px solid rgba(200,100,40,.18);border-radius:20px;padding:22px 18px 18px;box-shadow:0 24px 56px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.03) inset;transition:transform .35s cubic-bezier(0.34,1.2,0.64,1),opacity .3s;transform-origin:50% 100%;touch-action:none;}
+.gc-card.swipe-left{transform:translateX(-120%) rotate(-12deg);opacity:0;}
+.gc-card.swipe-right{transform:translateX(120%) rotate(12deg);opacity:0;}
+.gc-card.skip-anim{transform:translateY(24px);opacity:0;}
+.gc-type{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:3px;color:var(--ember);text-transform:uppercase;margin-bottom:8px;}
+.gc-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1.5px;line-height:1.05;margin-bottom:8px;}
+.gc-sub{font-size:12px;color:var(--ash);line-height:1.4;margin-bottom:14px;}
+.gc-member-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.gc-member-grid.gc-grid-6{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,auto);}
+.gc-vs-mid{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--ash);text-align:center;margin:-4px 0 8px;letter-spacing:4px;}
+.gc-q-input{width:100%;min-height:72px;background:#0d0d0d;border:1px solid #252525;border-radius:12px;padding:12px;color:var(--chalk);font-family:'Barlow',sans-serif;font-size:13px;line-height:1.45;resize:none;margin-bottom:12px;}
+.gc-q-input:focus{outline:none;border-color:var(--ember);}
+.ne-quick-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.ne-quick-chip{background:var(--rock);border:1px solid var(--smoke);border-radius:20px;padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;color:var(--chalk);cursor:pointer;transition:all .18s;}
+.ne-quick-chip:hover{border-color:var(--ember);background:#1f0e05;color:var(--ember2);}
+.ne-hero-row{display:flex;gap:10px;align-items:stretch;margin-bottom:14px;position:relative;}
+.ne-hero-row .ne-input{flex:1;margin-bottom:0;}
+.ne-date-hit{width:48px;flex-shrink:0;background:var(--rock);border:1px solid var(--smoke);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:all .18s;}
+.ne-date-hit:hover{border-color:var(--ember);}
+.ne-advanced{display:none;margin-top:4px;}
+.ne-advanced.show{display:block;}
+.ne-suggest-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:8px;}
+.gc-mem-btn{background:#0d0d0d;border:1px solid #252525;border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .18s;}
+.gc-mem-btn:hover,.gc-mem-btn.sel{border-color:var(--ember);background:rgba(200,64,10,.1);}
+.gc-mem-av{font-size:28px;display:block;margin-bottom:4px;}
+.gc-mem-nm{font-size:10px;color:var(--silver);}
+.gc-split{display:flex;gap:10px;margin-bottom:14px;}
+.gc-split-btn{flex:1;background:#0d0d0d;border:1px solid #252525;border-radius:12px;padding:14px 8px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;text-align:center;cursor:pointer;transition:all .18s;}
+.gc-split-btn:hover{border-color:var(--teal);color:var(--teal);}
+.gc-reveal{background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:14px;font-size:13px;color:var(--chalk);line-height:1.5;margin-bottom:14px;}
+.gc-look-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;align-items:stretch;}
+.gc-look-visual{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;aspect-ratio:1;max-height:140px;}
+.gc-look-visual img{width:100%;height:100%;object-fit:cover;display:block;}
+.gc-look-visual.fallback{display:flex;align-items:center;justify-content:center;font-size:64px;background:linear-gradient(145deg,#1a3018,#0d180d);}
+.gc-look-copy{display:flex;flex-direction:column;justify-content:center;min-height:100px;}
+.gc-look-copy .gc-title{margin-bottom:6px;font-size:20px;}
+.gc-look-copy .gc-sub{margin-bottom:0;font-size:11px;}
+.gc-duo-row{display:flex;gap:10px;margin-bottom:10px;}
+.gc-duo-btn{flex:1;background:#0d0d0d;border:2px solid #252525;border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;}
+.gc-duo-btn:hover,.gc-duo-btn.sel{border-color:var(--ember);background:rgba(200,64,10,.1);}
+.gc-duo-av{font-size:32px;display:block;margin-bottom:6px;}
+.gc-duo-nm{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;}
+.gc-other-guys{width:100%;background:transparent;border:1px dashed #333;border-radius:10px;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:var(--silver);cursor:pointer;margin-bottom:12px;}
+.gc-other-guys:hover{border-color:var(--ember);color:var(--ember2);}
+.gc-cave-story{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;}
+.gc-cave-user{display:flex;align-items:center;gap:12px;background:#0d0d0d;border:1px solid #252525;border-radius:14px;padding:12px 14px;}
+.gc-cave-user-av{width:48px;height:48px;border-radius:50%;background:var(--smoke);font-size:28px;display:flex;align-items:center;justify-content:center;border:2px solid var(--ember);}
+.gc-cave-user-txt{flex:1;min-width:0;}
+.gc-cave-user-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;}
+.gc-cave-user-tag{font-size:10px;color:var(--teal);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.gc-cave-photo{border-radius:14px;overflow:hidden;border:1px solid #2a2a2a;aspect-ratio:16/10;max-height:140px;background:#111;}
+.gc-cave-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.gc-cave-photo-ph{display:flex;align-items:center;justify-content:center;font-size:72px;background:linear-gradient(180deg,#2a1810,#151210);}
+.gc-cave-quote{font-size:13px;color:var(--chalk);line-height:1.55;padding:0 2px;}
+.gc-cta-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.gc-cta-main{background:linear-gradient(135deg,var(--ember),#8a3008);border:none;border-radius:12px;padding:14px 16px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:white;cursor:pointer;box-shadow:0 6px 20px rgba(200,64,10,.35);}
+.gc-cta-main:hover{filter:brightness(1.08);}
+.gc-cta-sec{background:#0d0d0d;border:1px solid var(--teal);border-radius:12px;padding:12px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;color:var(--teal);cursor:pointer;}
+.gc-cta-sec:hover{background:rgba(10,140,122,.1);}
+.game-pick-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:700;align-items:flex-end;justify-content:center;}
+.game-pick-overlay.open{display:flex;}
+.game-pick-sheet{background:#121212;border:1px solid #2a2a2a;border-bottom:none;border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:72vh;overflow:hidden;display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.game-pick-head{padding:16px 20px;border-bottom:1px solid #222;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.game-pick-scroll{overflow-y:auto;padding:12px 16px 36px;flex:1;}
+.game-pick-row{display:flex;align-items:center;gap:12px;width:100%;background:var(--stone);border:1px solid #1e1e1e;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;text-align:left;transition:all .18s;color:var(--chalk);font-family:'Barlow',sans-serif;}
+.game-pick-row:hover{border-color:var(--ember);}
+.game-pick-av{width:44px;height:44px;border-radius:50%;background:var(--smoke);font-size:24px;display:flex;align-items:center;justify-content:center;}
+.gc-actions{display:flex;gap:10px;}
+.gc-skip{flex:1;background:transparent;border:1px solid #333;border-radius:10px;padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:var(--ash);cursor:pointer;}
+.gc-skip:hover{border-color:#555;color:var(--silver);}
+.gc-go{flex:1.2;background:var(--ember);border:none;border-radius:10px;padding:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:white;cursor:pointer;}
+.gc-go:disabled{opacity:.35;pointer-events:none;}
+.gc-go:not(:disabled):hover{background:var(--ember2);}
+.gc-done{text-align:center;padding:40px 20px;font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--ash);}
+.rock-fly{position:fixed;pointer-events:none;z-index:8000;font-size:28px;opacity:0;transition:none;}
+.rock-fly.show{animation:rockFly .9s cubic-bezier(0.25,0.8,0.25,1) forwards;}
+@keyframes rockFly{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--rx),var(--ry)) scale(.4);}}
+/* TOAST */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:#1c1c1c;border:1px solid #2e2e2e;border-left:3px solid var(--ember);color:var(--chalk);padding:9px 16px;border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;opacity:0;transition:all .24s;z-index:9000;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<div class="app-top" id="app-global-header">
+  <div class="app-top-left">
+    <div class="profile-menu-wrap" id="profile-menu-wrap">
+      <div class="app-top-av-wrap" id="profile-av-hit" onclick="toggleProfile()" role="button" tabindex="0" aria-expanded="false" aria-haspopup="true" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleProfile();}">
+        <div class="app-top-av">🧔</div>
+        <span class="app-top-badge" id="global-notif-badge">3</span>
+      </div>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <div class="pd-head">
+          <div class="pd-av-circle">🧔</div>
+          <div><div class="pd-name">BIG MIKE</div><div class="pd-vibe">🔥 The BBQ King</div></div>
+        </div>
+        <div class="pd-score-bar">
+          <div class="pd-score-flame">🪨</div>
+          <div class="pd-score-info">
+            <div class="pd-score-label">Cave Rocks</div>
+            <div class="pd-score-track"><div class="pd-score-fill" id="pd-fill-demo" style="width:72%"></div></div>
+            <div class="pd-score-tag">Stack rocks · Build the cave · Good hangs add up</div>
+          </div>
+          <div class="pd-score-num" id="pd-rocks-num">720</div>
+        </div>
+        <div class="pd-feed-item unread" onclick="toast('👊 Poking Marcus back...')">
+          <div class="pd-feed-av unread-ring">🤠<div class="pd-unread-dot"></div></div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">Marcus poked you 👊</div>
+            <div class="pd-feed-sub">Hit him back before he thinks he got you</div>
+            <div class="pd-feed-time">2 hours ago</div>
+          </div>
+        </div>
+        <div class="pd-feed-item unread" onclick="toast('🎂 Opening birthday plan...')">
+          <div class="pd-feed-av unread-ring">🤠<div class="pd-unread-dot"></div></div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">Marcus's 40th in 4 days 🎂</div>
+            <div class="pd-feed-sub">Big one. Don't let it slide</div>
+            <div class="pd-feed-time">Today</div>
+          </div>
+        </div>
+        <div class="pd-feed-item" onclick="toast('🏆 Nice badge!')">
+          <div class="pd-feed-av" style="font-size:18px;">🔥</div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">3-Event Streak badge earned</div>
+            <div class="pd-feed-sub">You're on a roll — keep showing up</div>
+            <div class="pd-feed-time">Yesterday</div>
+          </div>
+        </div>
+        <div class="pd-feed-item suggestion" onclick="openNEFromTemplate('bbq')">
+          <div class="pd-feed-av suggest-ring" style="font-size:18px;">🔥<div class="pd-suggest-dot"></div></div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">Summer BBQ — set one up?</div>
+            <div class="pd-feed-sub">Grab some meat with the boys and fire up the grill</div>
+          </div>
+          <button class="pd-add-btn ember-btn" onclick="event.stopPropagation();openNEFromTemplate('bbq')">+</button>
+        </div>
+        <div class="pd-feed-item suggestion" onclick="openNEFromTemplate('footy')">
+          <div class="pd-feed-av suggest-ring" style="font-size:18px;">⚽<div class="pd-suggest-dot"></div></div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">5-a-Side — Marcus is keen</div>
+            <div class="pd-feed-sub">He mentioned it last week. Propose some dates</div>
+          </div>
+          <button class="pd-add-btn" onclick="event.stopPropagation();openNEFromTemplate('footy')">+</button>
+        </div>
+        <div class="pd-feed-item suggestion" onclick="openGameQuestion()">
+          <div class="pd-feed-av suggest-ring" style="font-size:18px;">🧠<div class="pd-suggest-dot"></div></div>
+          <div class="pd-feed-body">
+            <div class="pd-feed-title">Drop a trivia question</div>
+            <div class="pd-feed-sub">The guys love a good "who in the group…" roast</div>
+          </div>
+          <button class="pd-add-btn" onclick="event.stopPropagation();openGameQuestion()">+</button>
+        </div>
+        <div class="pd-footer">
+          <div class="pd-footer-btn" onclick="toast('👤 Edit Profile')">Edit Profile</div>
+          <div class="pd-footer-btn red" onclick="toast('🚪 Leaving...')">Leave Cave</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="app-top-screen-title" id="app-header-title">MAN<em>CAVE</em></div>
+      <div class="app-top-sub">
+        <span class="app-top-rocks" id="rocks-bump-target">🪨 <span id="header-rocks-val">720</span></span>
+        <span class="app-top-sub-mid">·</span>
+        <span class="app-top-hint" id="app-header-hint">Calendar</span>
+      </div>
+    </div>
+  </div>
+  <div class="app-top-right">
+    <div class="header-add-wrap" id="header-add-wrap">
+      <button type="button" class="header-add-btn" id="header-add-btn" onclick="toggleHeaderAddMenu()" aria-label="Add" aria-expanded="false" aria-haspopup="true">+</button>
+      <div class="header-add-menu" id="header-add-menu" role="menu">
+        <button type="button" class="header-add-item" role="menuitem" onclick="headerAddPick('event')">📅 New event</button>
+        <button type="button" class="header-add-item" role="menuitem" onclick="headerAddPick('guy')">👤 Add a guy</button>
+        <button type="button" class="header-add-item" role="menuitem" onclick="headerAddPick('invite')">✉️ Invite to the cave</button>
+        <button type="button" class="header-add-item" role="menuitem" onclick="headerAddPick('question')">🧠 Add a question</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-cal" class="screen active">
+  <div class="cal-header" style="padding-top:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div class="month-label" id="month-name">APRIL</div>
+        <div class="month-year-lbl" id="month-year">2026 · THE CAVE</div>
+      </div>
+      <div class="month-arrows">
+        <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
+        <button class="arrow-btn" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+  </div>
+  <div class="week-strip"><div class="week-days-row" id="week-strip-row"></div></div>
+  <div class="cal-pull-wrap" onclick="openFullCal()">
+    <div class="cal-pull-handle"></div>
+    <div class="cal-pull-label">full month ↓</div>
+  </div>
+  <div class="panel-divider"></div>
+  <div class="events-panel" id="events-panel"></div>
+</div>
+
+<!-- FULL CALENDAR OVERLAY -->
+<div class="full-cal-overlay" id="full-cal-overlay" onclick="closeFullCal()">
+  <div class="full-cal-sheet" onclick="event.stopPropagation()">
+    <div class="fcs-handle"></div>
+    <div class="fcs-month-row">
+      <div><div class="fcs-month-name" id="fcs-month-name">APRIL</div><div class="fcs-year" id="fcs-year">2026</div></div>
+      <div class="month-arrows">
+        <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
+        <button class="arrow-btn" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="fcs-day-labels">
+      <div class="fcs-day-lbl">S</div><div class="fcs-day-lbl">M</div><div class="fcs-day-lbl">T</div>
+      <div class="fcs-day-lbl">W</div><div class="fcs-day-lbl">T</div><div class="fcs-day-lbl">F</div><div class="fcs-day-lbl">S</div>
+    </div>
+    <div class="fcs-grid" id="fcs-grid"></div>
+  </div>
+</div>
+
+<!-- THE GUYS -->
+<div id="screen-guys" class="screen">
+  <div class="guys-scroll" id="guys-scroll"></div>
+</div>
+
+<!-- CAVE GAMES -->
+<div id="screen-games" class="screen">
+  <div class="games-header-slim" style="padding-top:0">
+    <div class="lb-strip games-lb lb-rtl" id="games-lb-strip"></div>
+  </div>
+  <div class="games-deck-wrap">
+    <div id="games-deck" class="games-deck"></div>
+    <div class="games-deck-hint">Swipe or tap · Skip anytime</div>
+  </div>
+</div>
+<div class="game-pick-overlay" id="game-pick-overlay" onclick="closeGameMemberPicker()">
+  <div class="game-pick-sheet" onclick="event.stopPropagation()">
+    <div class="game-pick-head" id="game-pick-head">Pick a guy</div>
+    <div class="game-pick-scroll" id="game-pick-scroll"></div>
+  </div>
+</div>
+
+<nav class="nav-bar">
+  <button class="nav-item active" id="nav-cal" onclick="showScreen('cal')"><span class="ni">📅</span>CALENDAR</button>
+  <button class="nav-item" id="nav-guys" onclick="showScreen('guys')"><span class="ni">👊</span>THE GUYS</button>
+  <button class="nav-item games-nav" id="nav-games" onclick="showScreen('games')"><div class="games-pip"></div><span class="ni">🎯</span>CAVE GAMES</button>
+</nav>
+</div>
+
+<!-- PROFILE SHEET -->
+<div class="profile-sheet-overlay" id="ps-overlay" onclick="closeProfileSheet()">
+  <div class="profile-sheet" onclick="event.stopPropagation()">
+    <div class="ps-handle"></div><div id="ps-content"></div>
+  </div>
+</div>
+<!-- REWARD PICKER -->
+<div class="reward-overlay" id="reward-overlay" onclick="closeReward()">
+  <div class="reward-sheet" onclick="event.stopPropagation()">
+    <div class="reward-handle"></div>
+    <div class="reward-sheet-title" id="reward-title">SEND A REWARD</div>
+    <div class="reward-sub" id="reward-sub">Pick a badge to send to the guy</div>
+    <div class="rewards-grid" id="rewards-grid"></div>
+    <button class="reward-send-btn" id="reward-send-btn" onclick="sendReward()">SEND IT 🏆</button>
+  </div>
+</div>
+<!-- ADD GUY -->
+<div class="add-guy-overlay" id="add-guy-overlay" onclick="closeAddGuy()">
+  <div class="add-guy-sheet" onclick="event.stopPropagation()">
+    <div class="ag-handle"></div>
+    <div class="ag-title">ADD A GUY</div>
+    <label class="ag-label">Name</label><input class="ag-input" type="text" placeholder="What's his name?">
+    <label class="ag-label">Birthday</label><input class="ag-input" type="date">
+    <label class="ag-label">Pick his vibe</label>
+    <div class="ag-emoji-row">
+      <div class="ag-emoji sel" onclick="selAgEmoji(this)">🔥</div><div class="ag-emoji" onclick="selAgEmoji(this)">🍺</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🏈</div><div class="ag-emoji" onclick="selAgEmoji(this)">🎮</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🔧</div><div class="ag-emoji" onclick="selAgEmoji(this)">🃏</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🤠</div><div class="ag-emoji" onclick="selAgEmoji(this)">🧔</div>
+    </div>
+    <label class="ag-label">Invite via</label>
+    <div class="ag-invite-methods">
+      <div class="ag-method" onclick="toast('📱 Opening SMS...')"><div class="ag-method-icon">💬</div><div class="ag-method-lbl">Text</div></div>
+      <div class="ag-method" onclick="toast('📧 Opening Email...')"><div class="ag-method-icon">📧</div><div class="ag-method-lbl">Email</div></div>
+      <div class="ag-method" onclick="toast('🔗 Link copied!')"><div class="ag-method-icon">🔗</div><div class="ag-method-lbl">Link</div></div>
+    </div>
+    <button class="ag-submit" onclick="submitAddGuy()">INVITE HIM TO THE CAVE 🔥</button>
+  </div>
+</div>
+<!-- NEW EVENT -->
+<div class="ne-overlay" id="ne-overlay" onclick="closeNE()">
+  <div class="ne-sheet" onclick="event.stopPropagation()">
+    <div class="ne-handle"></div>
+    <div class="ne-header"><div class="ne-title">NEW EVENT</div><div class="ne-close" onclick="closeNE()">✕</div></div>
+    <div class="ne-scroll">
+      <div class="ne-suggest-lbl">Templates · one tap</div>
+      <div class="ne-quick-row">
+        <button type="button" class="ne-quick-chip" onclick="neApplyTemplate('bowling')">🎳 Bowling</button>
+        <button type="button" class="ne-quick-chip" onclick="neApplyTemplate('board')">🎲 Board night</button>
+        <button type="button" class="ne-quick-chip" onclick="neApplyTemplate('ski')">🎿 Skiing</button>
+        <button type="button" class="ne-quick-chip" onclick="neApplyTemplate('beers')">🍺 Beers</button>
+      </div>
+      <label class="ne-lbl">Name & date</label>
+      <div class="ne-hero-row">
+        <input class="ne-input" id="ne-name-input" type="text" placeholder="What's the hang?" oninput="neCheckAdvanced()" style="margin-bottom:0">
+        <input type="date" id="ne-date-main" value="" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none" onchange="neCheckAdvanced()">
+        <button type="button" class="ne-date-hit" onclick="neOpenDate()" aria-label="Choose date">📅</button>
+      </div>
+      <div id="ne-advanced" class="ne-advanced">
+        <label class="ne-lbl">Icon</label>
+        <div class="emoji-strip" style="margin-bottom:12px">
+          <div class="e-pick sel" onclick="selEmoji(this)">🃏</div><div class="e-pick" onclick="selEmoji(this)">🍺</div>
+          <div class="e-pick" onclick="selEmoji(this)">🔥</div><div class="e-pick" onclick="selEmoji(this)">🏈</div>
+          <div class="e-pick" onclick="selEmoji(this)">🎱</div><div class="e-pick" onclick="selEmoji(this)">🎮</div>
+          <div class="e-pick" onclick="selEmoji(this)">⚽</div><div class="e-pick" onclick="selEmoji(this)">🍕</div>
+          <div class="e-pick" onclick="selEmoji(this)">🎲</div><div class="e-pick" onclick="selEmoji(this)">🏕️</div>
+        </div>
+        <label class="ne-lbl">Details</label>
+        <textarea class="ne-input" id="ne-details-input" placeholder="What's the plan?"></textarea>
+        <div class="ne-toggle-row" onclick="toggleDatePoll()">
+          <div><div class="toggle-lbl">📅 Let the guys vote on a date</div><div class="toggle-sub">Add options, crew votes</div></div>
+          <div class="tog" id="date-tog"></div>
+        </div>
+        <div id="fixed-date">
+          <div class="ne-date-row">
+            <div style="flex:1"><label class="ne-lbl">Date</label><input class="ne-input ne-date-sync" type="date" value="" onchange="var m=document.getElementById('ne-date-main');if(m)m.value=this.value;neCheckAdvanced();"></div>
+            <div style="flex:1"><label class="ne-lbl">Time</label><input class="ne-input" type="time" value="19:00"></div>
+          </div>
+          <label class="ne-lbl">Location</label><input class="ne-input" type="text" placeholder="e.g. Dave's place">
+        </div>
+        <div id="poll-date" style="display:none">
+          <label class="ne-lbl">Date Options</label>
+          <div class="poll-date-rows" id="poll-rows">
+            <div class="poll-row"><input class="ne-input" type="date" value="2026-04-11" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0"></div>
+            <div class="poll-row" style="margin-top:8px"><input class="ne-input" type="date" value="2026-04-18" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0"></div>
+          </div>
+          <button class="ne-poll-add" onclick="addPollRow()">+ Add Another Date</button>
+          <label class="ne-lbl">Location</label><input class="ne-input" type="text" placeholder="e.g. Dave's place">
+        </div>
+        <label class="ne-lbl">Invite the Guys</label>
+        <div class="invite-strip">
+          <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🤠</span><span class="inv-name">Marcus</span></div>
+          <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🧢</span><span class="inv-name">Jake</span></div>
+          <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🔥</span><span class="inv-name">Dave</span></div>
+          <div class="inv-chip" onclick="toggleInv(this)"><span class="inv-av">👨‍🦲</span><span class="inv-name">Dez</span></div>
+          <div class="inv-chip" onclick="toggleInv(this)"><span class="inv-av">🧔</span><span class="inv-name">Tony</span></div>
+        </div>
+      </div>
+    </div>
+    <button class="ne-submit" onclick="submitNE()">DROP IT IN THE CAVE 🔥</button>
+  </div>
+</div>
+<!-- GAME QUESTION -->
+<div class="overlay" id="gq-overlay" onclick="document.getElementById('gq-overlay').classList.remove('open')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-handle"></div>
+    <div class="sh-type" style="color:var(--teal)">🧠 Cave Trivia · Add a Question</div>
+    <div class="sh-title">DROP YOUR QUESTION</div>
+    <div class="sh-div"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:10px;">Canned Templates</div>
+    <div id="q-templates"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin:14px 0 10px;">Or Write Your Own</div>
+    <input class="ne-input" type="text" placeholder="Who in the group is most likely to..." style="margin-bottom:14px">
+    <input class="ne-input" type="text" placeholder="Answer A" style="margin-bottom:8px">
+    <input class="ne-input" type="text" placeholder="Answer B" style="margin-bottom:8px">
+    <input class="ne-input" type="text" placeholder="Answer C" style="margin-bottom:14px">
+    <div class="sh-rsvp-row">
+      <button class="btn-going" onclick="toast('🧠 Question added!');document.getElementById('gq-overlay').classList.remove('open')">SEND TO THE CAVE</button>
+      <button class="btn-cant" onclick="document.getElementById('gq-overlay').classList.remove('open')">CANCEL</button>
+    </div>
+  </div>
+</div>
+<!-- EVENT DETAIL -->
+<div class="overlay" id="overlay" onclick="closeModal()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-handle"></div><div id="sheet-content"></div>
+  </div>
+</div>
+<!-- SHARE EVENT -->
+<div class="share-overlay" id="share-overlay" onclick="closeShareSheet()">
+  <div class="share-sheet" onclick="event.stopPropagation()">
+    <div class="share-sheet-title">Share this hang</div>
+    <div class="share-sheet-sub">Loop in the cave or copy a link</div>
+    <button type="button" class="share-opt" onclick="openInviteShare()">
+      <span class="share-opt-ico">👊</span>
+      <span><span class="share-opt-txt">Guys in the cave</span><span class="share-opt-sub">Pick who gets the invite</span></span>
+    </button>
+    <button type="button" class="share-opt" onclick="copyEventLink()">
+      <span class="share-opt-ico">🔗</span>
+      <span><span class="share-opt-txt">Copy link</span><span class="share-opt-sub">Share anywhere</span></span>
+    </button>
+    <button type="button" class="share-dismiss" onclick="closeShareSheet()">Done</button>
+  </div>
+</div>
+<!-- INVITE PICKER (share flow) -->
+<div class="invite-share-overlay" id="invite-share-overlay">
+  <div class="invite-share-head">
+    <div class="invite-share-title">Invite</div>
+    <button type="button" class="invite-share-x" onclick="closeInviteShare()" aria-label="Close">✕</button>
+  </div>
+  <div class="invite-share-scroll" id="invite-share-list"></div>
+</div>
+<div class="toast" id="toast-el"></div>
+<script>
+const MEMBERS={
+  dave:  {name:'Dave',  av:'🔥',full:'Dave Kowalski',  vibe:'🔥 The BBQ King',  bday:'Nov 12',rocks:412,badges:['🔥','🏆','👑','🍺','🎲','🏅'],isOrganiser:true,gameAnswers:[{q:'Who brings the heat to a cookout?',a:'Dave — obviously',when:'Cave Trivia · Mar 20'},{q:'Board night pick?',a:'Wings + Catan',when:'This or That · Mar 18'}]},
+  marcus:{name:'Marcus',av:'🤠',full:'Marcus Thompson',vibe:'🍺 The Beer Guy',  bday:'Mar 29',rocks:480,badges:['🍺','🎯','💪','🔥'],isBdaySoon:true,gameAnswers:[{q:'Most likely to order rounds?',a:'Marcus (unanimous)',when:'Member pick · Mar 22'},{q:'Zombie apocalypse partner?',a:'You picked Marcus',when:'Swipe deck · Mar 19'}]},
+  jake:  {name:'Jake',  av:'🧢',full:'Jake Rivera',    vibe:'🏈 The Sports Fan',bday:'Apr 3', rocks:310,badges:['🏈','🎯','⚡'],gameAnswers:[{q:'Sunday football host?',a:'Jake’s garage',when:'Member pick · Mar 21'}]},
+  tony:  {name:'Tony',  av:'🧔',full:'Tony Morales',   vibe:'🃏 The Card Shark',bday:'Apr 18',rocks:390,badges:['🃏','😈','🏅'],gameAnswers:[{q:'Best poker face?',a:'Tony — no tells',when:'Reveal card · Mar 17'}]},
+  dez:   {name:'Dez',   av:'👨‍🦲',full:'Dez Washington', vibe:'🔧 The Handyman', bday:'Apr 27',rocks:270,badges:['🔧','💪'],gameAnswers:[{q:'Who fixes it first?',a:'Dez with a Leatherman',when:'Cave Trivia · Mar 16'}]},
+};
+const MONTH_LEADER_IDS=['dave','marcus'];
+const REWARDS=[
+  {emoji:'🔥',name:'On Fire'},{emoji:'🏆',name:'Champion'},{emoji:'💪',name:'Solid Guy'},
+  {emoji:'🍺',name:'First Round'},{emoji:'👑',name:'The King'},{emoji:'😈',name:'Savage'},
+  {emoji:'🎯',name:'Dead Aim'},{emoji:'⚡',name:'Clutch'},{emoji:'🏅',name:'OG'},
+  {emoji:'🤣',name:'Comic'},{emoji:'👊',name:'Ride or Die'},{emoji:'🦁',name:'The Lion'},
+];
+const Q_TEMPLATES=[
+  {q:'Who in the group would survive a zombie apocalypse longest?'},
+  {q:'Who is most likely to show up late to their own funeral?'},
+  {q:'Who has the worst taste in movies?'},
+  {q:'Which guy would you want in your corner in a fight?'},
+  {q:'Who is secretly the best cook in the group?'},
+  {q:'Finish this: "You know it\'s Marcus when he..."'},
+];
+const EVENTS_DATA={
+  '2026-4-3': [{type:'bday',emoji:'🎂',title:"Jake's 35th Birthday",  sub:'All day · Jake Rivera',   stripe:'stripe-gold', color:'gold',  detail:'jake',  bdayMember:'jake'}],
+  '2026-4-4': [{type:'event',emoji:'⚾',title:'Batting cages',           sub:'4:00 PM · Riverside',     stripe:'stripe-purple',color:'purple',detail:'cages'}],
+  '2026-4-5': [{type:'event',emoji:'🃏',title:"Poker Night @ Dave's", sub:"7:00 PM · Dave's Place",  stripe:'stripe-ember',color:'ember', detail:'poker'}],
+  '2026-4-6': [{type:'event',emoji:'🎮',title:'FIFA + wings',          sub:"7:00 PM · Jake's garage", stripe:'stripe-teal', color:'teal',  detail:'fifa'}],
+  '2026-4-7': [{type:'event',emoji:'🎳',title:'Bowling league night',  sub:'8:00 PM · Midtown Lanes', stripe:'stripe-ember',color:'ember', detail:'bowl'}],
+  '2026-4-8': [{type:'event',emoji:'🍕',title:'Pizza pre-game',        sub:'6:00 PM · Tony picks spot',stripe:'stripe-ember',color:'ember', detail:'pizza'}],
+  '2026-4-12':[{type:'event',emoji:'🍺',title:'Craft Brewery Run',     sub:'2:00 PM · Downtown',      stripe:'stripe-teal', color:'teal',  detail:'brew'}],
+  '2026-4-18':[{type:'bday',emoji:'🎂',title:"Tony's Birthday",       sub:'All day · Tony Morales',  stripe:'stripe-gold', color:'gold',  detail:'tony',  bdayMember:'tony'}],
+  '2026-4-19':[{type:'event',emoji:'🔥',title:'Backyard Bonfire',      sub:"8:00 PM · Marcus's",      stripe:'stripe-ember',color:'ember', detail:'fire'}],
+  '2026-4-24':[{type:'event',emoji:'🏈',title:'NFL Draft Watch Party', sub:"8:00 PM · Carlos's",      stripe:'stripe-purple',color:'purple',detail:'nfl'}],
+  '2026-4-27':[{type:'bday',emoji:'🎂',title:"Dez's Birthday",        sub:'All day · Dez Washington', stripe:'stripe-gold', color:'gold',  detail:'dez',   bdayMember:'dez'}],
+  '2026-3-29':[{type:'bday',emoji:'🎂',title:"Marcus's 40th Birthday",sub:'All day · Marcus Thompson',stripe:'stripe-gold', color:'gold',  detail:'marcus',bdayMember:'marcus'}],
+  '2026-5-9': [{type:'bday',emoji:'🎂',title:"Dave's Birthday",       sub:'All day · Dave Kowalski',  stripe:'stripe-gold', color:'gold',  detail:'dave',  bdayMember:'dave'}],
+  '2026-5-25':[{type:'event',emoji:'🔥',title:'Memorial Day BBQ',      sub:"1:00 PM · Dave's",         stripe:'stripe-ember',color:'ember', detail:'bbq'}],
+};
+const DETAILS={
+  cages:{title:'Batting cages',date:'Fri, Apr 4 · 4:00 PM',type:'⚾ Event',body:'Riverside cages — bring a glove if you still have one from little league.',attendees:['jake','tony','dez'],extra:0,going:false},
+  fifa:{title:'FIFA + wings',date:'Sun, Apr 6 · 7:00 PM',type:'🎮 Event',body:'Jake’s garage. Controller rotation. Wings on Jake.',attendees:['dave','marcus','jake','tony'],extra:0,going:false},
+  bowl:{title:'Bowling league night',date:'Mon, Apr 7 · 8:00 PM',type:'🎳 Event',body:'Midtown Lanes. Loser buys the first round after.',attendees:['marcus','dez','tony'],extra:1,going:false},
+  pizza:{title:'Pizza pre-game',date:'Tue, Apr 8 · 6:00 PM',type:'🍕 Event',body:'Tony’s pick for slices before whatever the night becomes.',attendees:['dave','jake','tony'],extra:0,going:false},
+  poker:{title:"Poker Night @ Dave's",date:'Sat, Apr 5 · 7:00 PM',  type:'🃏 Event',  body:'Buy-in: $20. Smoked wings. BYOB. Loser washes up.',attendees:['dave','marcus','jake','tony','dez'],extra:3,going:true},
+  jake: {title:"Jake's 35th Birthday",date:'Fri, Apr 3 · All Day',  type:'🎂 Birthday',body:'Jake turns 35. Gift fund open — $10/person to Marcus.',attendees:['dave','marcus','tony','dez'],extra:0,going:false},
+  tony: {title:"Tony's Birthday",     date:'Sat, Apr 18 · All Day', type:'🎂 Birthday',body:"Tony's turning another year older. He wants steak.",attendees:['dave','marcus','jake'],extra:0,going:false},
+  brew: {title:'Craft Brewery Run',   date:'Sun, Apr 12 · 2:00 PM', type:'🍺 Event',  body:'3 breweries downtown. Uber it.',attendees:['marcus','jake','dez'],extra:2,going:false},
+  fire: {title:'Backyard Bonfire',    date:'Sun, Apr 19 · 8:00 PM', type:'🔥 Event',  body:"Marcus's backyard. Fire pit, cornhole, mystery meat.",attendees:['dave','jake','tony','dez'],extra:1,going:false},
+  nfl:  {title:'NFL Draft Watch Party',date:'Thu, Apr 24 · 8:00 PM',type:'🏈 Event',  body:"Carlos's place. Big screen, draft boards, trash talk.",attendees:['dave','marcus','jake','tony'],extra:2,going:false},
+  dez:  {title:"Dez's Birthday",      date:'Mon, Apr 27 · All Day', type:'🎂 Birthday',body:"Dez doesn't make a big deal of birthdays — hence we must.",attendees:['dave','marcus','jake'],extra:0,going:false},
+  marcus:{title:"Marcus's 40th",      date:'Sun, Mar 29 · All Day', type:'🎂 Birthday · THE BIG ONE',body:'Marcus is hitting 40. Vegas hint was dropped. Act fast.',attendees:['dave','jake','tony','dez'],extra:1,going:true},
+  dave: {title:"Dave's Birthday",     date:'Sat, May 9 · All Day',  type:'🎂 Birthday',body:"The organiser's own birthday. Someone else plans this one.",attendees:['marcus','jake','tony','dez'],extra:0,going:false},
+  bbq:  {title:'Memorial Day BBQ',    date:'Mon, May 25 · 1:00 PM', type:'🔥 Event',  body:"Dave's annual blowout. Brisket starts 6am.",attendees:['dave','marcus','jake','tony','dez'],extra:3,going:true},
+};
+const SUGGESTED=[
+  {emoji:'⚽',title:'5-a-Side Football',desc:"Marcus wants a game at Riverside Park.",dateOpts:[
+    {date:'Sat May 3',day:'10:00 AM',voters:['dave','marcus'],votes:2},
+    {date:'Sat May 10',day:'10:00 AM',voters:['jake','tony','dez'],votes:3},
+    {date:'Sun May 18',day:'2:00 PM',voters:['marcus'],votes:1},
+  ]},
+  {emoji:'🎱',title:'Pool Tournament',desc:"The Anchor Bar has the back room on reserve.",dateOpts:[
+    {date:'Fri May 16',day:'7:00 PM',voters:['dave','jake'],votes:2},
+    {date:'Sat May 17',day:'6:00 PM',voters:['marcus','tony','dez','dave'],votes:4},
+  ]},
+];
+const myVotes={};
+const EVENT_WALLS={
+  poker:[{mid:'marcus',t:'2h',txt:'Bringing the good chips this time — no gas station deck 🃏'},{mid:'jake',t:'5h',txt:'Anyone need a ride? Got 3 seats'}],
+  bbq:[{mid:'dave',t:'1d',txt:'Brisket goes on at 6am. Don’t be late.'}],
+  marcus:[{mid:'tony',t:'3d',txt:'Vegas energy for the big 4-0 🎰'}],
+};
+let myRocks=720;
+let curYear=2026,curMonth=4,selectedDay=5;
+const TODAY_D=5,TODAY_M=4,TODAY_Y=2026;
+const MONTHS=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const DAY_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let rewardTarget='',datePollOn=false,currentModalKey=null,shareEventKey=null,gameCardIndex=0,gameTouchX=0,gamePickedMember=null,gamePickMode=null;
+const GAMES_LB=[
+  {n:'MARCUS',av:'🤠',rocks:480,rank:'#1',rc:'gold',cc:'r1'},
+  {n:'MIKE',av:'🧔',rocks:420,rank:'#2',rc:'silver',cc:''},
+  {n:'TONY',av:'🧔',rocks:390,rank:'#3',rc:'bronze',cc:''},
+  {n:'DAVE',av:'🔥',rocks:350,rank:'#4',rc:'reg',cc:''},
+  {n:'JAKE',av:'🧢',rocks:310,rank:'#5',rc:'reg',cc:''},
+  {n:'DEZ',av:'👨‍🦲',rocks:270,rank:'#6',rc:'reg',cc:''},
+];
+const SWIPE_DECK=[
+  {type:'lookalike',tag:'Celebrity twin',title:'Shrek energy',sub:'Which guy could be his stunt double? They’ll get a ping — all love.',pts:20,
+    img:'https://upload.wikimedia.org/wikipedia/en/4/4d/Shrek_%28character%29.png',fallbackEmoji:'🧌',members:['dave','marcus','jake','tony','dez']},
+  {type:'versus',tag:'Pick one',title:'Corner bar argument',sub:'Two guys walk into a debate — tap one, or open the full roster.',pts:16,suggest:['jake','tony']},
+  {type:'hotter',tag:'Totally scientific',title:'Who’s running hotter right now?',sub:'Pure vibes. No wrong answers (except maybe ego).',pts:14,suggest:['dave','marcus']},
+  {type:'corner_two',tag:'In your corner',title:'Scrap night hypotheticals',sub:'Two heavy picks — or tap below for the whole cave.',pts:20,suggest:['marcus','dez']},
+  {type:'cave_reveal',tag:'Jake told the cave',memberMid:'jake',body:'His go-to halftime fuel is cold pizza — folded like a pro. The cave voted: iconic.',foodImg:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&h=320&fit=crop',emojiFood:'🍕',pts:10},
+  {type:'props_vote',tag:'Friendship MVP',title:'Who’s building the cave?',sub:'Vote someone who’s shown up — rides given, plans made, vibes kept high.',pts:22,members:['dave','marcus','jake','tony','dez']},
+  {type:'next_leader_vote',tag:'Next month',title:'Vote next month’s leaders',sub:'Who should host / rally the crew after Dave & Marcus wrap April?',pts:24,members:['jake','tony','dez']},
+  {type:'add_question',tag:'Your voice',title:'Add a cave question',sub:'Something funny, spicy, or deep — the guys can answer all week.',pts:26},
+  {type:'cta_poll',tag:'Your turn',title:'Spin up a date poll',sub:'Find a window that works for everyone — you earn rocks for leading.',pts:28},
+  {type:'this_or_that',tag:'Game night',title:'Board battle',sub:'What are we playing Saturday?',left:{emoji:'🎲',label:'Catan chaos'},right:{emoji:'♟️',label:'Chess in the garage'},pts:12},
+  {type:'cta_event',tag:'Host mode',title:'Drop a hang on the calendar',sub:'BBQ, watch party, poker — the cave needs anchors.',pts:28},
+  {type:'cave_reveal',tag:'Marcus · Cave lore',memberMid:'marcus',body:'He says he can put away 40 wings “easy.” The group wants receipts.',foodImg:'https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=500&h=320&fit=crop',emojiFood:'🍗',pts:10},
+  {type:'this_or_that',tag:'Snack run',title:'Gas station grab',sub:'You’re driving. One pick:',left:{emoji:'🥨',label:'Slim Jims'},right:{emoji:'🍫',label:'Full candy bar'},pts:10},
+];
+function buildGamesLB(){
+  const el=document.getElementById('games-lb-strip');
+  if(!el)return;
+  el.innerHTML=GAMES_LB.map(p=>`<div class="lb-card ${p.cc}"><div class="lb-rank ${p.rc}">${p.rank}</div><div class="lb-av">${p.av}</div><div class="lb-name">${p.n}</div><div class="lb-pts"><strong>${p.rocks}</strong></div><div class="lb-rocks-lbl">🪨 rocks</div></div>`).join('');
+}
+function gameImgFail(el,emoji){
+  const w=el.parentElement;if(!w)return;
+  w.classList.add('fallback');w.innerHTML=emoji||'🖼️';
+}
+function gameFoodFail(el,emoji){
+  const p=el.parentElement;if(!p)return;
+  p.classList.add('gc-cave-photo-ph');el.remove();p.textContent=emoji||'🍕';
+}
+function updateAppHeader(id){
+  const t=document.getElementById('app-header-title');
+  const h=document.getElementById('app-header-hint');
+  if(!t||!h)return;
+  if(id==='cal'){t.innerHTML='MAN<em>CAVE</em>';h.textContent='Calendar';}
+  else if(id==='guys'){t.innerHTML='THE <em>GUYS</em>';h.textContent='The crew';}
+  else{t.innerHTML='CAVE<em>GAMES</em>';h.textContent='Swipe deck';}
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id).classList.add('active');
+  updateAppHeader(id);
+  if(id==='guys')renderGuys();
+  if(id==='games'){buildGamesLB();syncRocksUI();renderGameDeck();}
+  closeProfile();
+  closeHeaderAddMenu();
+}
+function syncRocksUI(){
+  const hr=document.getElementById('header-rocks-val');
+  if(hr)hr.textContent=String(myRocks);
+  const pr=document.getElementById('pd-rocks-num');
+  if(pr)pr.textContent=myRocks;
+  const fill=document.getElementById('pd-fill-demo');
+  if(fill)fill.style.width=Math.min(100,Math.round((myRocks/1000)*100))+'%';
+}
+function flyRocksToHud(n){
+  const hud=document.getElementById('rocks-bump-target');
+  if(!hud)return;
+  const r=document.createElement('div');
+  r.className='rock-fly show';
+  r.textContent='🪨+'+n;
+  const deck=document.getElementById('games-deck');
+  const from=deck?deck.getBoundingClientRect():{left:window.innerWidth/2-40,top:window.innerHeight/2,width:80,height:200};
+  const hb=hud.getBoundingClientRect();
+  const sx=from.left+from.width/2, sy=from.top+from.height/3;
+  const tx=hb.left+hb.width/2, ty=hb.top+hb.height/2;
+  r.style.left=sx+'px';
+  r.style.top=sy+'px';
+  r.style.setProperty('--rx',(tx-sx)+'px');
+  r.style.setProperty('--ry',(ty-sy)+'px');
+  document.body.appendChild(r);
+  setTimeout(()=>r.remove(),900);
+  hud.classList.remove('bump');
+  void hud.offsetWidth;
+  hud.classList.add('bump');
+}
+function addRocks(n){
+  myRocks+=n;
+  syncRocksUI();
+  const gs=document.getElementById('screen-games');
+  if(gs&&gs.classList.contains('active'))flyRocksToHud(n);
+}
+function memberGridHTML(mids){
+  return mids.map(mid=>{const m=MEMBERS[mid];return m?`<button type="button" class="gc-mem-btn" data-gmid="${mid}" onclick="pickGameMember(this,'${mid}')"><span class="gc-mem-av">${m.av}</span><span class="gc-mem-nm">${m.name}</span></button>`:'';}).join('');
+}
+function memberPickStrip(mids,pickMode){
+  const three=(mids||[]).slice(0,3);
+  return `<div class="gc-member-grid">${memberGridHTML(three)}</div>
+    <button type="button" class="gc-other-guys" onclick="openGameMemberPicker('${pickMode}')">Choose from the whole cave…</button>`;
+}
+function renderGameDeck(){
+  const deck=document.getElementById('games-deck');
+  if(!deck)return;
+  const c=SWIPE_DECK[gameCardIndex];
+  if(!c){deck.innerHTML='<div class="gc-done">You’re caught up for now.<br><span style="font-size:12px;color:#444">Check back — new cards drop all week.</span></div>';return;}
+  gamePickedMember=null;
+  let inner='', footer='';
+  if(c.type==='lookalike'){
+    inner=`<div class="gc-type">${c.tag}</div>
+      <div class="gc-look-split">
+        <div class="gc-look-visual"><img src="${c.img}" alt="" onerror="gameImgFail(this,'${c.fallbackEmoji||'🧌'}')"></div>
+        <div class="gc-look-copy"><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div></div>
+      </div>
+      ${memberPickStrip(c.members,'lookalike')}`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()" disabled>Lock in</button></div>`;
+  }else if(c.type==='corner_two'||c.type==='versus'||c.type==='hotter'){
+    const a=c.suggest[0],b=c.suggest[1],ma=MEMBERS[a],mb=MEMBERS[b];
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div>
+      <div class="gc-duo-row">
+        <button type="button" class="gc-duo-btn" onclick="pickCornerQuick(this,'${a}')"><span class="gc-duo-av">${ma.av}</span><span class="gc-duo-nm">${ma.name}</span></button>
+        <button type="button" class="gc-duo-btn" onclick="pickCornerQuick(this,'${b}')"><span class="gc-duo-av">${mb.av}</span><span class="gc-duo-nm">${mb.name}</span></button>
+      </div>
+      <button type="button" class="gc-other-guys" onclick="openGameMemberPicker('duo')">Choose from the whole cave…</button>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()" disabled>Lock in</button></div>`;
+  }else if(c.type==='cave_reveal'){
+    const m=MEMBERS[c.memberMid];
+    const ef=(c.emojiFood||'🍕').replace(/'/g,'\\\'');
+    const ph=c.foodImg?`<div class="gc-cave-photo"><img src="${c.foodImg}" alt="" onerror="gameFoodFail(this,'${ef}')"></div>`:`<div class="gc-cave-photo gc-cave-photo-ph">${c.emojiFood||'🍕'}</div>`;
+    inner=`<div class="gc-type">${c.tag}</div>
+      <div class="gc-cave-story">
+        <div class="gc-cave-user"><div class="gc-cave-user-av">${m.av}</div><div class="gc-cave-user-txt"><div class="gc-cave-user-name">${m.full}</div><div class="gc-cave-user-tag">Said in the cave</div></div></div>
+        ${ph}
+        <div class="gc-cave-quote">${c.body}</div>
+      </div>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()">Next</button></div>`;
+  }else if(c.type==='props_vote'||c.type==='next_leader_vote'){
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div>${memberPickStrip(c.members,c.type==='next_leader_vote'?'next_leader':'props')}`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()" disabled>Submit vote</button></div>`;
+  }else if(c.type==='add_question'){
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div>
+      <textarea class="gc-q-input" id="gc-q-text" placeholder="e.g. Who’s most likely to show up in slippers?" oninput="var b=document.getElementById('gc-submit-btn');if(b)b.disabled=!this.value.trim()"></textarea>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()" disabled>Drop it in the cave</button></div>`;
+  }else if(c.type==='cta_poll'){
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div>
+      <div class="gc-cta-btns"><button type="button" class="gc-cta-sec" onclick="gameCtaPoll()">📅 Start a date poll</button></div>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Not now</button></div>`;
+  }else if(c.type==='cta_event'){
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div>
+      <div class="gc-cta-btns"><button type="button" class="gc-cta-main" onclick="gameCtaEvent()">🔥 Create an event</button></div>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Not now</button></div>`;
+  }else if(c.type==='this_or_that'){
+    inner=`<div class="gc-type">${c.tag}</div><div class="gc-title">${c.title}</div><div class="gc-sub">${c.sub}</div><div class="gc-split"><button type="button" class="gc-split-btn" onclick="pickSplit()">${c.left.emoji} ${c.left.label}</button><button type="button" class="gc-split-btn" onclick="pickSplit()">${c.right.emoji} ${c.right.label}</button></div>`;
+    footer=`<div class="gc-actions"><button type="button" class="gc-skip" onclick="skipGameCard()">Skip</button><button type="button" class="gc-go" id="gc-submit-btn" onclick="submitGameCard()" disabled>Next</button></div>`;
+  }
+  deck.innerHTML=`<div class="gc-card" id="gc-active-card">${inner}${footer}</div>`;
+  const sub=document.getElementById('gc-submit-btn');
+  if(sub&&c.type==='cave_reveal')sub.disabled=false;
+  const card=document.getElementById('gc-active-card');
+  if(card){
+    card.addEventListener('touchstart',e=>{gameTouchX=e.changedTouches[0].clientX;},{passive:true});
+    card.addEventListener('touchend',e=>{
+      if(c.type==='cta_poll'||c.type==='cta_event')return;
+      const dx=e.changedTouches[0].clientX-gameTouchX;
+      if(Math.abs(dx)>56){if(dx<0)skipGameCard();else submitGameCard();}
+    },{passive:true});
+  }
+}
+function openGameMemberPicker(mode){
+  gamePickMode=mode;
+  const heads={duo:'Choose from the whole cave',lookalike:'Pick a guy',props:'Pick a guy',next_leader:'Vote for next leaders'};
+  document.getElementById('game-pick-head').textContent=heads[mode]||'Pick a guy';
+  const sc=document.getElementById('game-pick-scroll');
+  sc.innerHTML=Object.entries(MEMBERS).map(([k,m])=>`<button type="button" class="game-pick-row" onclick="confirmGameMemberPick('${k}')"><span class="game-pick-av">${m.av}</span><span><strong style="font-family:'Barlow Condensed',sans-serif">${m.name}</strong><br><span style="font-size:11px;color:var(--ash)">${m.vibe}</span></span></button>`).join('');
+  document.getElementById('game-pick-overlay').classList.add('open');
+}
+function closeGameMemberPicker(){document.getElementById('game-pick-overlay').classList.remove('open');gamePickMode=null;}
+function confirmGameMemberPick(mid){
+  gamePickedMember=mid;
+  closeGameMemberPicker();
+  document.querySelectorAll('.gc-duo-btn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.gc-mem-btn').forEach(b=>b.classList.toggle('sel',b.dataset.gmid===mid));
+  const s=document.getElementById('gc-submit-btn');
+  if(s)s.disabled=false;
+  toast(`✓ ${MEMBERS[mid].name}`);
+}
+function pickCornerQuick(el,mid){
+  gamePickedMember=mid;
+  document.querySelectorAll('.gc-duo-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  const s=document.getElementById('gc-submit-btn');
+  if(s)s.disabled=false;
+}
+function pickGameMember(el,mid){
+  document.querySelectorAll('.gc-mem-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  gamePickedMember=mid;
+  const s=document.getElementById('gc-submit-btn');
+  if(s)s.disabled=false;
+}
+function pickSplit(){const b=document.getElementById('gc-submit-btn');if(b)b.disabled=false;}
+function gameCtaPoll(){
+  const c=SWIPE_DECK[gameCardIndex];if(!c)return;
+  addRocks(c.pts||28);
+  gameCardIndex++;
+  renderGameDeck();
+  datePollOn=true;
+  document.getElementById('date-tog').classList.add('on');
+  document.getElementById('fixed-date').style.display='none';
+  document.getElementById('poll-date').style.display='block';
+  openNewEvent();
+  const ni=document.getElementById('ne-name-input');
+  if(ni&&!String(ni.value||'').trim())ni.value='Find a date · crew vote';
+  neCheckAdvanced();
+  toast('📅 Poll mode on — set your dates');
+}
+function gameCtaEvent(){
+  const c=SWIPE_DECK[gameCardIndex];if(!c)return;
+  addRocks(c.pts||28);
+  gameCardIndex++;
+  renderGameDeck();
+  datePollOn=false;
+  document.getElementById('date-tog').classList.remove('on');
+  document.getElementById('fixed-date').style.display='block';
+  document.getElementById('poll-date').style.display='none';
+  openNewEvent();
+  const ni=document.getElementById('ne-name-input');
+  if(ni&&!String(ni.value||'').trim())ni.value='New hang on the calendar';
+  neCheckAdvanced();
+  toast('🔥 New event — you’re hosting');
+}
+function skipGameCard(){
+  const card=document.getElementById('gc-active-card');
+  if(card){card.classList.add('skip-anim');setTimeout(()=>{gameCardIndex++;renderGameDeck();},280);}
+  else{gameCardIndex++;renderGameDeck();}
+}
+function submitGameCard(){
+  const c=SWIPE_DECK[gameCardIndex];
+  if(!c)return;
+  if(c.type==='add_question'){
+    const ta=document.getElementById('gc-q-text');
+    if(!ta||!ta.value.trim())return;
+    addRocks(c.pts||26);
+    const card=document.getElementById('gc-active-card');
+    const advance=()=>{gameCardIndex++;renderGameDeck();setTimeout(()=>openGameQuestion(),280);};
+    toast('📝 Question queued — templates open below');
+    if(card){card.classList.add('swipe-right');setTimeout(advance,320);}else advance();
+    return;
+  }
+  if(c.type==='this_or_that'){const s=document.getElementById('gc-submit-btn');if(!s||s.disabled)return;}
+  const needsPick=c.type==='lookalike'||c.type==='props_vote'||c.type==='next_leader_vote'||c.type==='corner_two'||c.type==='versus'||c.type==='hotter';
+  if(needsPick&&!gamePickedMember)return;
+  const m=MEMBERS[gamePickedMember];
+  if(needsPick&&m){
+    let msg=`🔔 ${m.name} will see that`;
+    if(c.type==='props_vote')msg=`🪨 Props sent to ${m.name}`;
+    if(c.type==='next_leader_vote')msg=`🗳️ Leader vote tallied for ${m.name}`;
+    toast(msg);
+  }
+  addRocks(c.pts||10);
+  const card=document.getElementById('gc-active-card');
+  if(card){card.classList.add('swipe-right');setTimeout(()=>{gameCardIndex++;renderGameDeck();},320);}
+  else{gameCardIndex++;renderGameDeck();}
+}
+function renderWeekStrip(){
+  const row=document.getElementById('week-strip-row');
+  row.innerHTML='';
+  const anchor=new Date(curYear,curMonth-1,selectedDay);
+  const sunday=new Date(anchor);
+  sunday.setDate(anchor.getDate()-anchor.getDay());
+  for(let i=0;i<7;i++){
+    const d=new Date(sunday);d.setDate(sunday.getDate()+i);
+    const dd=d.getDate(),mm=d.getMonth()+1,yy=d.getFullYear();
+    const key=`${yy}-${mm}-${dd}`;
+    const evs=EVENTS_DATA[key]||[];
+    const hasBday=evs.some(e=>e.type==='bday');
+    const bdayEv=evs.find(e=>e.type==='bday');
+    const isToday=dd===TODAY_D&&mm===TODAY_M&&yy===TODAY_Y;
+    const isSel=dd===selectedDay&&mm===curMonth&&yy===curYear;
+    const cell=document.createElement('div');
+    cell.className='week-cell';
+    if(isToday)cell.classList.add('today');
+    if(isSel)cell.classList.add(hasBday?'wc-bday':'wc-sel');
+    const dy=document.createElement('div');dy.className='wc-day';dy.textContent=DAY_NAMES[d.getDay()];cell.appendChild(dy);
+    const nm=document.createElement('div');nm.className='wc-num';nm.textContent=dd;cell.appendChild(nm);
+    if(evs.length){
+      const ir=document.createElement('div');ir.className='wc-icons';
+      const items=[];
+      evs.forEach(ev=>{
+        if(ev.type==='bday'&&ev.bdayMember)items.push({kind:'face',mid:ev.bdayMember});
+        else items.push({kind:'ico',emoji:ev.emoji});
+      });
+      items.slice(0,3).forEach(it=>{
+        if(it.kind==='face'){
+          const m=MEMBERS[it.mid];
+          if(m){const f=document.createElement('span');f.className='wc-bday-face';f.textContent=m.av;f.title=m.full;ir.appendChild(f);}
+        }else{
+          const ic=document.createElement('span');ic.className='wc-icon ev';ic.textContent=it.emoji;ir.appendChild(ic);
+        }
+      });
+      cell.appendChild(ir);
+    }
+    cell.onclick=()=>{selectedDay=dd;curMonth=mm;curYear=yy;renderWeekStrip();renderEvents();updateMonthLabel();};
+    row.appendChild(cell);
+  }
+}
+function updateMonthLabel(){
+  document.getElementById('month-name').textContent=MONTHS[curMonth-1];
+  document.getElementById('month-year').textContent=`${curYear} · THE CAVE`;
+}
+function openFullCal(){renderFullCal();document.getElementById('full-cal-overlay').classList.add('open');}
+function closeFullCal(){document.getElementById('full-cal-overlay').classList.remove('open');}
+function renderFullCal(){
+  document.getElementById('fcs-month-name').textContent=MONTHS[curMonth-1];
+  document.getElementById('fcs-year').textContent=curYear;
+  const grid=document.getElementById('fcs-grid');grid.innerHTML='';
+  const first=new Date(curYear,curMonth-1,1).getDay();
+  const dim=new Date(curYear,curMonth,0).getDate();
+  const prev=new Date(curYear,curMonth-1,0).getDate();
+  for(let i=first-1;i>=0;i--)grid.appendChild(mkFcsCell(prev-i,true));
+  for(let d=1;d<=dim;d++){
+    const key=`${curYear}-${curMonth}-${d}`;
+    const evs=EVENTS_DATA[key]||[];
+    const hasBday=evs.some(e=>e.type==='bday');
+    const bdayEv=evs.find(e=>e.type==='bday');
+    grid.appendChild(mkFcsCell(d,false,d===TODAY_D&&curMonth===TODAY_M&&curYear===TODAY_Y,d===selectedDay,evs,hasBday,bdayEv,d));
+  }
+  const rem=(first+dim)%7;
+  for(let i=1;i<=(rem?7-rem:0);i++)grid.appendChild(mkFcsCell(i,true));
+}
+function mkFcsCell(n,other,isToday,isSel,evs,hasBday,bdayEv,dn){
+  const el=document.createElement('div');el.className='fcs-cell';
+  if(other)el.classList.add('other');
+  if(isToday)el.classList.add('fcs-today');
+  if(hasBday)el.classList.add('has-bday');
+  if(isSel)el.classList.add(hasBday?'fcs-bday-sel':'fcs-sel');
+  if(hasBday&&bdayEv?.bdayMember){const m=MEMBERS[bdayEv.bdayMember];if(m){const b=document.createElement('div');b.className='fcs-bday-av';b.textContent=m.av;el.appendChild(b);}}
+  const num=document.createElement('div');num.className='fcs-cell-num';num.textContent=n;el.appendChild(num);
+  if(evs&&evs.length){const ir=document.createElement('div');ir.className='fcs-cell-icons';evs.slice(0,2).forEach(ev=>{const ic=document.createElement('span');ic.className='fcs-icon';ic.textContent=ev.emoji;ir.appendChild(ic);});el.appendChild(ir);}
+  if(!other&&dn){el.onclick=()=>{selectedDay=dn;closeFullCal();renderWeekStrip();renderEvents();updateMonthLabel();};}
+  return el;
+}
+function changeMonth(dir){
+  curMonth+=dir;
+  if(curMonth>12){curMonth=1;curYear++;}if(curMonth<1){curMonth=12;curYear--;}
+  selectedDay=1;renderWeekStrip();renderEvents();updateMonthLabel();
+  if(document.getElementById('full-cal-overlay').classList.contains('open'))renderFullCal();
+}
+function renderEvents(){
+  const panel=document.getElementById('events-panel');
+  const key=`${curYear}-${curMonth}-${selectedDay}`;
+  const evs=EVENTS_DATA[key]||[];
+  const dateStr=new Date(curYear,curMonth-1,selectedDay).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  let html='';
+  if(evs.length){
+    html+=`<div class="panel-header"><div class="panel-date">${dateStr.toUpperCase()}</div><div class="panel-count">${evs.length} item${evs.length>1?'s':''}</div></div>`;
+    evs.forEach((ev,i)=>{html+=evCardHTML(ev,i);});
+    html+=`<div class="section-lbl" style="margin-top:10px">Suggested</div>`;
+    SUGGESTED.forEach((sg,si)=>{html+=suggestHTML(sg,si);});
+  }else{
+    html+=`<div class="panel-header"><div class="panel-date">${dateStr.toUpperCase()}</div><div class="panel-count" style="color:#333">Free</div></div>`;
+    html+=`<div class="section-lbl">All Upcoming</div>`;
+    const all=[];
+    Object.entries(EVENTS_DATA).forEach(([k,arr])=>{const[y,m,d]=k.split('-').map(Number);const dt=new Date(y,m-1,d);if(dt>new Date(curYear,curMonth-1,selectedDay))arr.forEach(ev=>all.push({ev,dt,m,d}));});
+    all.sort((a,b)=>a.dt-b.dt);let lastM='';
+    all.forEach(({ev,dt,m,d},i)=>{
+      const ml=MONTHS[m-1].slice(0,3)+' '+dt.getFullYear();
+      if(ml!==lastM){html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:#333;text-transform:uppercase;margin:10px 0 7px;">${ml}</div>`;lastM=ml;}
+      html+=evCardHTML(ev,i,`${MONTHS[m-1].slice(0,3)} ${d}`);
+    });
+    html+=`<div class="section-lbl" style="margin-top:14px">Suggested by the Guys</div>`;
+    SUGGESTED.forEach((sg,si)=>{html+=suggestHTML(sg,si);});
+  }
+  panel.innerHTML=html;
+}
+function evCardHTML(ev,idx,dateOvr){
+  const det=DETAILS[ev.detail]||{};const isBday=ev.type==='bday';
+  const timePart=dateOvr?`<span>${dateOvr}</span><span class="event-sub-sep">·</span>`:'';
+  const loc=ev.sub.split('·').slice(1).join('·').trim();
+  let avs='<div class="av-cluster">';
+  (det.attendees||[]).slice(0,4).forEach(mid=>{const m=MEMBERS[mid];if(m)avs+=`<div class="av-b">${m.av}</div>`;});
+  if(det.extra>0)avs+=`<div class="av-b more">+${det.extra}</div>`;avs+='</div>';
+  const bav=isBday&&ev.bdayMember?`<div class="bday-av-circle">${MEMBERS[ev.bdayMember]?.av||ev.emoji}</div>`:`<div class="event-emoji">${ev.emoji}</div>`;
+  return `<div class="event-card ${isBday?'bday-card-special':''}" style="animation-delay:${idx*.05}s" onclick="openModal('${ev.detail}')">
+    <div class="event-card-inner"><div class="event-stripe ${ev.stripe}"></div>
+    <div class="event-main">${bav}
+      <div class="event-info"><div class="event-title">${ev.title}</div>
+        <div class="event-sub">${timePart}<span>${loc}</span></div></div>
+      <div class="event-right">${avs}
+        <button class="pill ${det.going?'pill-going':'pill-out'}" onclick="event.stopPropagation();toggleRsvp(this,'${ev.detail}')">${det.going?'GOING ✓':'RSVP'}</button>
+      </div></div></div></div>`;
+}
+function suggestHTML(sg,si){
+  const maxV=Math.max(...sg.dateOpts.map(o=>o.votes),1);const myV=myVotes[si];let dates='';
+  sg.dateOpts.forEach((opt,oi)=>{
+    const lead=opt.votes===maxV;const pct=Math.round((opt.votes/maxV)*100);const voted=myV===oi;
+    const avs=opt.voters.slice(0,3).map(mid=>`<div class="date-voter-av">${MEMBERS[mid]?.av||'👤'}</div>`).join('');
+    dates+=`<div class="date-opt ${voted?'voted':''}" onclick="event.stopPropagation()">
+      <div class="date-opt-row"><div><div class="date-opt-date">${opt.date}</div><div class="date-opt-day">${opt.day}</div></div>
+        <div class="date-opt-right"><div class="date-voter-avs">${avs}</div><span class="vote-cnt ${lead?'lead':''}">${opt.votes}v</span>
+          <button class="vote-btn ${voted?'voted':''}" onclick="castVote(${si},${oi})">${voted?'✓':'VOTE'}</button>
+        </div></div>
+      <div class="date-bar-wrap"><div class="date-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+  return `<div class="suggest-card"><div class="suggest-inner"><div class="suggest-stripe"></div>
+    <div class="suggest-body"><div class="suggest-tag">Suggested Event</div>
+      <div class="suggest-title">${sg.emoji} ${sg.title}</div>
+      <div class="suggest-desc">${sg.desc}</div>
+      <div class="date-vote-lbl">Vote for a date:</div>${dates}
+    </div></div></div>`;
+}
+function castVote(si,oi){
+  const prev=myVotes[si];if(prev===oi)return;
+  if(prev!==undefined)SUGGESTED[si].dateOpts[prev].votes=Math.max(0,SUGGESTED[si].dateOpts[prev].votes-1);
+  SUGGESTED[si].dateOpts[oi].votes++;myVotes[si]=oi;renderEvents();toast('✅ Vote locked in!');
+}
+function toggleRsvp(btn,key){
+  const det=DETAILS[key];if(!det)return;det.going=!det.going;
+  btn.className='pill '+(det.going?'pill-going':'pill-out');btn.textContent=det.going?'GOING ✓':'RSVP';
+  toast(det.going?"✅ You're going!":"👋 RSVP removed");
+}
+function renderGuys(){
+  const scroll=document.getElementById('guys-scroll');let html='<div style="padding-top:14px">';
+  Object.values(MEMBERS).filter(m=>m.isBdaySoon).forEach(m=>{
+    html+=`<div class="bday-banner"><div class="bday-banner-icon">${m.av}</div>
+      <div><div class="bday-banner-name">${m.full}</div><div class="bday-banner-sub">🎂 Birthday · ${m.bday}</div></div>
+      <div class="bday-banner-days">4<small>DAYS</small></div></div>`;
+  });
+  const L1=MEMBERS.dave,L2=MEMBERS.marcus;
+  html+=`<div class="leaders-premium-wrap">
+    <div class="leaders-kicker-premium">April · month leaders</div>
+    <div class="leaders-cards-row">
+      <div class="leader-card-x" onclick="toast('👑 ${L1.name} — the cave picked you to host')">
+        <div class="lc-crown">👑</div>
+        <div class="lc-month">Month leader</div>
+        <div class="lc-name">${L1.av} ${L1.name}</div>
+        <div class="lc-duty">Lock in a hang this month — grill night, watch party, poker, whatever anchors the crew.</div>
+        <button type="button" class="lc-cta" onclick="event.stopPropagation();openNewEvent();toast('🔥 Set up your month event')">Set up this month’s event</button>
+      </div>
+      <div class="leader-card-x" onclick="toast('👑 ${L2.name} — rally the boys')">
+        <div class="lc-crown">👑</div>
+        <div class="lc-month">Month leader</div>
+        <div class="lc-name">${L2.av} ${L2.name}</div>
+        <div class="lc-duty">You’re on deck too — pick a date, send the invite, make it easy for everyone to say yes.</div>
+        <button type="button" class="lc-cta" onclick="event.stopPropagation();openNewEvent();toast('📅 Marcus mode: propose dates')">Propose a hang</button>
+      </div>
+    </div></div>`;
+  html+=`<div class="section-lbl" style="margin-bottom:12px">The Crew · ${Object.keys(MEMBERS).length} Members</div>`;
+  Object.entries(MEMBERS).forEach(([key,m])=>{
+    const isL=MONTH_LEADER_IDS.includes(key);
+    html+=`<div class="guy-card${isL?' is-leader':''}" onclick="openProfileSheet('${key}')">
+      <div class="guy-av-cell">${isL?'<span class="guy-crown">👑</span>':''}<div class="guy-av">${m.av}</div></div>
+      <div class="guy-info"><div class="guy-name">${m.full}</div><div class="guy-vibe">${m.vibe}</div>
+        ${m.isBdaySoon?`<div class="guy-bday-pill">🎂 ${m.bday} · Soon!</div>`:`<div class="guy-bday-pill" style="background:transparent;border-color:transparent;color:var(--ash)">🎂 ${m.bday}</div>`}
+      </div>
+      <div class="guy-actions">
+        <div class="poke-btn" onclick="event.stopPropagation();pokeMember('${key}')">👊</div>
+        <div class="reward-btn" onclick="event.stopPropagation();openReward('${key}')">🏆</div>
+      </div></div>`;
+  });
+  html+='</div>';scroll.innerHTML=html;
+}
+function pokeMember(key){toast(`👊 You poked ${MEMBERS[key].name}!`);}
+function openProfileSheet(key){
+  const m=MEMBERS[key];
+  const rewards=m.badges.map(b=>{const r=REWARDS.find(x=>x.emoji===b);return`<span class="ps-reward-chip" title="${r?r.name:'Reward'}">${b}</span>`;}).join('');
+  const gas=(m.gameAnswers||[]).map(g=>`<div class="ps-ga-card"><div class="ps-ga-q">${g.q}</div><div class="ps-ga-a">${g.a}</div><div class="ps-ga-meta">${g.when}</div></div>`).join('')||'<div style="font-size:12px;color:#333">No answers yet — pull a few cards in Cave Games.</div>';
+  document.getElementById('ps-content').innerHTML=`
+    <div class="ps-hero">
+      <div class="ps-hero-top">
+        <div class="ps-av ${m.isBdaySoon?'gold-border':''}">${m.av}</div>
+        <div class="ps-hero-main">
+          <div class="ps-name">${m.full.toUpperCase()}</div>
+          <div class="ps-vibe">${m.vibe}</div>
+          <div class="ps-bday">🎂 ${m.bday}</div>
+        </div>
+        <div class="ps-hero-actions">
+          <button type="button" class="ps-icon-act" onclick="closeProfileSheet();openReward('${key}')" title="Send reward">🏆<span class="ps-plus">+</span></button>
+          <button type="button" class="ps-icon-act" onclick="pokeMember('${key}')" title="Poke">👊<span class="ps-plus">+</span></button>
+        </div>
+      </div>
+      <div class="ps-rocks-strip">
+        <span class="ps-rocks-ico">🪨</span>
+        <div class="ps-rocks-copy">
+          <div class="ps-rocks-label">Cave rocks</div>
+          <div class="ps-rocks-val">${m.rocks}</div>
+          <div class="ps-rocks-hint">Every hang & game adds to the pile · build the cave together</div>
+        </div>
+      </div>
+    </div>
+    <div class="ps-scroll">
+      <div class="ps-sec-title">Rewards</div>
+      <div class="ps-rewards-scroll">${rewards}</div>
+      <div class="ps-sec-title">Wall</div>
+      <div class="ps-wall-box">
+        <textarea class="ps-wall-input" id="ps-wall-msg" placeholder="Leave ${m.name} a note on their wall…"></textarea>
+        <div class="ps-wall-actions"><button type="button" class="ps-wall-post" onclick="postProfileWall('${key}')">Post</button></div>
+      </div>
+      <div class="ps-sec-title">From Cave Games</div>
+      ${gas}
+    </div>`;
+  document.getElementById('ps-overlay').classList.add('open');
+}
+function postProfileWall(key){
+  const ta=document.getElementById('ps-wall-msg');
+  if(!ta||!ta.value.trim()){toast('Write something first');return;}
+  toast(`📝 Posted on ${MEMBERS[key].name}'s wall`);
+  ta.value='';
+}
+function closeProfileSheet(){document.getElementById('ps-overlay').classList.remove('open');}
+function openReward(key){
+  rewardTarget=key;const m=MEMBERS[key];
+  document.getElementById('reward-title').textContent=`SEND ${m.name.toUpperCase()} A REWARD`;
+  document.getElementById('reward-sub').textContent=`Pick a badge to drop on ${m.name}`;
+  document.getElementById('rewards-grid').innerHTML=REWARDS.map(r=>`<div class="reward-opt" onclick="selReward(this)"><span class="reward-opt-emoji">${r.emoji}</span><div class="reward-opt-name">${r.name}</div></div>`).join('');
+  document.getElementById('reward-send-btn').classList.remove('ready');
+  document.getElementById('reward-overlay').classList.add('open');
+}
+function selReward(el){document.querySelectorAll('.reward-opt').forEach(r=>r.classList.remove('sel'));el.classList.add('sel');document.getElementById('reward-send-btn').classList.add('ready');}
+function sendReward(){const m=MEMBERS[rewardTarget];const sel=document.querySelector('.reward-opt.sel');const emoji=sel?sel.querySelector('.reward-opt-emoji').textContent:'🏆';closeReward();toast(`${emoji} Reward sent to ${m.name}!`);}
+function closeReward(){document.getElementById('reward-overlay').classList.remove('open');}
+function openAddGuy(){document.getElementById('add-guy-overlay').classList.add('open');}
+function closeAddGuy(){document.getElementById('add-guy-overlay').classList.remove('open');}
+function selAgEmoji(el){document.querySelectorAll('.ag-emoji').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
+function submitAddGuy(){closeAddGuy();toast('🔥 Invite sent! Welcome to the Cave.');}
+function openGameQuestion(){
+  closeProfile();
+  document.getElementById('q-templates').innerHTML=Q_TEMPLATES.map(q=>`
+    <div style="background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 13px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .18s;" onclick="selectQTemplate(this)">
+      <div style="font-size:14px;color:var(--chalk);flex:1;font-family:'Barlow',sans-serif;">${q.q}</div>
+      <button style="background:var(--teal);border:none;border-radius:6px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:white;cursor:pointer;white-space:nowrap;" onclick="event.stopPropagation();selectQTemplate(this.parentElement)">USE</button>
+    </div>`).join('');
+  document.getElementById('gq-overlay').classList.add('open');
+}
+function selectQTemplate(el){document.querySelectorAll('#q-templates > div').forEach(d=>d.style.borderColor='#222');el.style.borderColor='var(--teal)';toast('✅ Template selected!');}
+const NE_TEMPLATES={bowling:{name:'Bowling night 🎳',emoji:'🎳'},board:{name:'Board game night 🎲',emoji:'🎲'},ski:{name:'Ski day 🎿',emoji:'🎿'},beers:{name:'Beers & bull 🍺',emoji:'🍺'}};
+function neApplyTemplate(k){
+  const t=NE_TEMPLATES[k];if(!t)return;
+  const inp=document.getElementById('ne-name-input');if(inp)inp.value=t.name;
+  const picks=document.querySelectorAll('#ne-advanced .e-pick');
+  let hit=[...picks].find(p=>p.textContent.trim()===t.emoji);
+  if(!hit&&picks[0]){picks[0].textContent=t.emoji;hit=picks[0];}
+  picks.forEach(p=>p.classList.remove('sel'));if(hit)hit.classList.add('sel');
+  neCheckAdvanced();
+}
+function neOpenDate(){
+  const el=document.getElementById('ne-date-main');if(!el)return;
+  if(typeof el.showPicker==='function'){try{el.showPicker();}catch(_){el.click();}}else el.click();
+}
+function neCheckAdvanced(){
+  const nEl=document.getElementById('ne-name-input');
+  const dEl=document.getElementById('ne-date-main');
+  const adv=document.getElementById('ne-advanced');
+  const n=nEl?String(nEl.value||'').trim():'';
+  const d=dEl?dEl.value:'';
+  if(adv)adv.classList.toggle('show',!!(n||d));
+  const sync=document.querySelector('.ne-date-sync');
+  if(sync&&d)sync.value=d;
+}
+function openNewEvent(){
+  closeHeaderAddMenu();
+  document.getElementById('ne-overlay').classList.add('open');
+  document.getElementById('header-add-btn')?.classList.add('rotated');
+  neCheckAdvanced();
+}
+function closeNE(){document.getElementById('ne-overlay').classList.remove('open');document.getElementById('header-add-btn')?.classList.remove('rotated');}
+function openNEFromTemplate(type){
+  closeProfile();
+  const names={bbq:'Summer BBQ Blowout 🔥',footy:'5-a-Side Football ⚽'};
+  document.getElementById('ne-name-input').value=names[type]||'';
+  datePollOn=true;document.getElementById('date-tog').classList.add('on');
+  document.getElementById('fixed-date').style.display='none';document.getElementById('poll-date').style.display='block';
+  neCheckAdvanced();
+  openNewEvent();
+}
+function toggleDatePoll(){datePollOn=!datePollOn;document.getElementById('date-tog').classList.toggle('on',datePollOn);document.getElementById('fixed-date').style.display=datePollOn?'none':'block';document.getElementById('poll-date').style.display=datePollOn?'block':'none';}
+function addPollRow(){const r=document.createElement('div');r.className='poll-row';r.style.marginTop='8px';r.innerHTML=`<input class="ne-input" type="date" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0">`;document.getElementById('poll-rows').appendChild(r);}
+function selEmoji(el){document.querySelectorAll('#ne-advanced .e-pick').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
+function toggleInv(el){el.classList.toggle('sel');}
+function submitNE(){closeNE();toast('🔥 Event dropped in the Cave!');}
+function toggleProfile(){
+  closeHeaderAddMenu();
+  const wrap=document.getElementById('profile-menu-wrap');
+  const dd=document.getElementById('profile-dropdown');
+  const hit=document.getElementById('profile-av-hit');
+  if(!wrap||!dd)return;
+  const open=!dd.classList.contains('open');
+  wrap.classList.toggle('open',open);
+  dd.classList.toggle('open',open);
+  if(hit)hit.setAttribute('aria-expanded',open?'true':'false');
+}
+function closeProfile(){
+  const wrap=document.getElementById('profile-menu-wrap');
+  const dd=document.getElementById('profile-dropdown');
+  const hit=document.getElementById('profile-av-hit');
+  if(wrap)wrap.classList.remove('open');
+  if(dd)dd.classList.remove('open');
+  if(hit)hit.setAttribute('aria-expanded','false');
+}
+function toggleHeaderAddMenu(){
+  closeProfile();
+  const m=document.getElementById('header-add-menu');
+  const b=document.getElementById('header-add-btn');
+  if(!m||!b)return;
+  const open=!m.classList.contains('open');
+  m.classList.toggle('open',open);
+  b.classList.toggle('open',open);
+  b.setAttribute('aria-expanded',open?'true':'false');
+}
+function closeHeaderAddMenu(){
+  document.getElementById('header-add-menu')?.classList.remove('open');
+  const b=document.getElementById('header-add-btn');
+  if(b){b.classList.remove('open');b.setAttribute('aria-expanded','false');}
+}
+function headerAddPick(which){
+  closeHeaderAddMenu();
+  if(which==='event')openNewEvent();
+  else if(which==='guy')openAddGuy();
+  else if(which==='invite')openInviteShare();
+  else if(which==='question')openGameQuestion();
+}
+document.addEventListener('click',e=>{
+  const pw=document.getElementById('profile-menu-wrap');
+  if(pw&&!pw.contains(e.target))closeProfile();
+  const aw=document.getElementById('header-add-wrap');
+  if(aw&&!aw.contains(e.target))closeHeaderAddMenu();
+});
+function buildWhoAvatarsHTML(d){
+  const ids=d.attendees||[];
+  let h=ids.map(mid=>{const m=MEMBERS[mid];return m?`<span class="who-av-only" title="${m.full}">${m.av}</span>`:'';}).join('');
+  if(d.extra>0)h+=`<span class="who-av-only more" title="${d.extra} more in the cave">+${d.extra}</span>`;
+  return`<div class="who-avatars-only">${h}</div>`;
+}
+function wallRowsHTML(key){
+  const rows=EVENT_WALLS[key]||[];
+  return rows.map(p=>{
+    if(p.mid==='you')return`<div class="wall-post"><div class="wall-post-hd"><span class="wall-post-av">🧔</span><span class="wall-post-name">You</span><span class="wall-post-time">${p.t}</span></div><div class="wall-post-txt">${p.txt}</div></div>`;
+    const m=MEMBERS[p.mid];if(!m)return'';
+    return`<div class="wall-post"><div class="wall-post-hd"><span class="wall-post-av">${m.av}</span><span class="wall-post-name">${m.name}</span><span class="wall-post-time">${p.t}</span></div><div class="wall-post-txt">${p.txt}</div></div>`;
+  }).join('')||'<div style="font-size:12px;color:#333;padding:8px 0">No posts yet — start the thread.</div>';
+}
+function buildEventModalHTML(key){
+  const d=DETAILS[key];if(!d)return'';
+  const typeCol=d.type.includes('Birthday')?'var(--gold)':'var(--ember)';
+  const whoAv=buildWhoAvatarsHTML(d);
+  const wall=EVENT_WALLS[key]||[];
+  let rsvpBlock='';
+  if(d.going){
+    rsvpBlock=`<div class="event-wall">
+      <p class="wall-hype">You’re in. Drop a line so the crew knows what you’re bringing — or just hype everyone up.</p>
+      <div class="wall-posts" id="event-wall-posts">${wallRowsHTML(key)}</div>
+      <div class="wall-composer">
+        <textarea id="event-wall-input" placeholder="Post to the event wall…"></textarea>
+        <button type="button" class="wall-send" onclick="addEventWallPost()" title="Post">➤</button>
+      </div>
+    </div>`;
+  }else{
+    rsvpBlock=`<div class="sh-rsvp-row">
+      <button type="button" class="btn-going" onclick="rsvpGoingModal()">COUNT ME IN</button>
+      <button type="button" class="btn-cant" onclick="rsvpCantModal()">CAN'T GO</button>
+    </div>`;
+  }
+  return`<div class="sh-toolbar">
+    <button type="button" class="sh-tool-btn" onclick="openShareForEvent()">📤 Share</button>
+    <button type="button" class="sh-tool-btn" onclick="copyEventHost()">📋 Copy</button>
+  </div>
+  <div class="sh-type" style="color:${typeCol}">${d.type}</div>
+  <div class="sh-title">${d.title}</div>
+  <div class="sh-date">📅 ${d.date}</div>
+  <div class="sh-div"></div>
+  <div class="sh-body">${d.body}</div>
+  <div class="sh-div"></div>
+  <div class="who-lbl">Who's in</div>
+  ${whoAv}
+  ${rsvpBlock}`;
+}
+function openModal(key){
+  currentModalKey=key;
+  const d=DETAILS[key];if(!d)return;
+  document.getElementById('sheet-content').innerHTML=buildEventModalHTML(key);
+  document.getElementById('overlay').classList.add('open');
+}
+function refreshEventModal(){if(currentModalKey)document.getElementById('sheet-content').innerHTML=buildEventModalHTML(currentModalKey);}
+function rsvpGoingModal(){const d=DETAILS[currentModalKey];if(!d)return;d.going=true;toast("✅ You're in!");refreshEventModal();}
+function rsvpCantModal(){const d=DETAILS[currentModalKey];if(!d)return;d.going=false;toast("👋 Updated");refreshEventModal();}
+function addEventWallPost(){
+  const ta=document.getElementById('event-wall-input');if(!ta||!ta.value.trim())return;
+  const k=currentModalKey;if(!k)return;
+  if(!EVENT_WALLS[k])EVENT_WALLS[k]=[];
+  EVENT_WALLS[k].unshift({mid:'you',t:'now',txt:ta.value.trim()});
+  ta.value='';refreshEventModal();toast('📌 Posted');
+}
+function openShareForEvent(){shareEventKey=currentModalKey;document.getElementById('share-overlay').classList.add('open');}
+function closeShareSheet(){document.getElementById('share-overlay').classList.remove('open');}
+function copyEventLink(){
+  const url=`https://mancave.app/e/${shareEventKey||'hang'}`;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>toast('🔗 Link copied'));}
+  else toast('🔗 Link: '+url);
+  closeShareSheet();
+}
+function openInviteShare(){
+  closeShareSheet();
+  const list=document.getElementById('invite-share-list');
+  list.innerHTML=Object.entries(MEMBERS).map(([k,m])=>`
+    <div class="invite-guy-row">
+      <div class="invite-guy-av">${m.av}</div>
+      <div class="invite-guy-info"><div class="invite-guy-name">${m.full}</div><div class="invite-guy-vibe">${m.vibe}</div></div>
+      <button type="button" class="invite-add-btn" data-k="${k}" onclick="toggleInviteGuy(this,'${k}')"></button>
+    </div>`).join('');
+  document.getElementById('invite-share-overlay').classList.add('open');
+}
+function closeInviteShare(){document.getElementById('invite-share-overlay').classList.remove('open');}
+function toggleInviteGuy(btn,k){
+  btn.classList.toggle('on');
+  toast(btn.classList.contains('on')?`✉️ ${MEMBERS[k].name} added to invite`:`Removed ${MEMBERS[k].name}`);
+}
+function copyEventHost(){
+  const k=currentModalKey;if(!k)return;
+  const d=DETAILS[k];if(!d)return;
+  closeModal();
+  document.getElementById('ne-name-input').value=d.title+' (your turn)';
+  const det=document.getElementById('ne-details-input');
+  if(det)det.value='Hosted my version of: '+d.title+'\n\n'+d.body;
+  datePollOn=false;
+  document.getElementById('date-tog').classList.remove('on');
+  document.getElementById('fixed-date').style.display='block';
+  document.getElementById('poll-date').style.display='none';
+  neCheckAdvanced();
+  openNewEvent();
+  toast('📋 Copied — set your date & spot');
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');currentModalKey=null;}
+function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+// INIT
+updateAppHeader('cal');
+syncRocksUI();
+buildGamesLB();
+renderWeekStrip();
+renderEvents();
+</script>
+</body>
+</html>

@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mancave</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --cave:#0a0a0a;--stone:#141414;--rock:#1c1c1c;--smoke:#2a2a2a;
+  --ash:#555;--silver:#888;--chalk:#e2ddd6;--white:#f4f0ea;
+  --ember:#c8400a;--ember2:#e05318;--gold:#c49a0a;--gold2:#e0b50e;
+  --teal:#0a8c7a;--purple:#6a3fa0;
+}
+html,body{height:100%;background:var(--cave);color:var(--white);font-family:'Barlow',sans-serif;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.038'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;}
+
+/* ══ SCREENS ══ */
+.screen{display:none;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative;overflow:hidden;}
+.screen.active{display:flex;animation:fadeUp .28s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ══ SHARED HEADER ══ */
+.top-bar{flex-shrink:0;padding:48px 20px 0;position:relative;z-index:20;}
+.top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.wordmark{font-family:‘Bebas Neue’,sans-serif;font-size:26px;letter-spacing:4px;}
+.wordmark em{color:var(–ember);font-style:normal;}
+.top-actions{display:flex;gap:8px;align-items:center;}
+.icon-btn{width:36px;height:36px;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:all .18s;position:relative;}
+.icon-btn:hover{border-color:var(–ember);}
+
+/* Profile button with badge */
+.profile-wrap{position:relative;}
+.profile-btn{width:36px;height:36px;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all .18s;}
+.profile-btn:hover,.profile-btn.open{border-color:var(–ember);background:#1f0e05;}
+.notif-badge{position:absolute;top:-5px;right:-5px;width:18px;height:18px;background:var(–ember);border-radius:50%;border:2px solid var(–cave);font-family:‘Bebas Neue’,sans-serif;font-size:11px;color:white;display:flex;align-items:center;justify-content:center;line-height:1;animation:badge-pop .4s cubic-bezier(0.34,1.6,0.64,1);}
+@keyframes badge-pop{from{transform:scale(0);}to{transform:scale(1);}}
+
+/* ══ PROFILE DROPDOWN ══ */
+.profile-dropdown{position:absolute;top:48px;right:0;width:280px;background:#161616;border:1px solid #2a2a2a;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);opacity:0;transform:translateY(-10px) scale(0.95);pointer-events:none;transition:all .22s cubic-bezier(0.34,1.2,0.64,1);z-index:500;}
+.profile-dropdown.open{opacity:1;transform:translateY(0) scale(1);pointer-events:all;}
+
+.pd-head{padding:16px;background:linear-gradient(135deg,#1f0e05,#141414);border-bottom:1px solid #222;display:flex;align-items:center;gap:12px;}
+.pd-av-circle{width:48px;height:48px;border-radius:50%;border:2px solid var(–ember);background:var(–smoke);font-size:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pd-name{font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:2px;line-height:1;}
+.pd-vibe{font-size:11px;color:var(–ember);margin-top:2px;}
+.pd-score-row{padding:14px 16px;border-bottom:1px solid #1e1e1e;background:linear-gradient(180deg,rgba(200,64,10,.06),transparent);}
+.pd-score-brand{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:4px;color:var(–ember);text-transform:uppercase;margin-bottom:4px;}
+.pd-score-val{font-family:‘Bebas Neue’,sans-serif;font-size:36px;letter-spacing:3px;line-height:1;color:var(–chalk);}
+.pd-score-val .pd-score-spark{font-size:26px;vertical-align:middle;margin-left:4px;}
+.pd-score-sub{font-size:12px;color:var(–ash);margin-top:6px;}
+.pd-score-sub strong{color:var(–silver);font-weight:600;}
+
+/* Notification list inside dropdown */
+.notif-section-label{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:3px;color:var(–ash);text-transform:uppercase;padding:10px 16px 6px;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #1a1a1a;cursor:pointer;transition:background .15s;}
+.notif-item:hover{background:#1e1e1e;}
+.notif-item.unread{background:rgba(200,64,10,0.06);}
+.notif-item.from-user{align-items:center;gap:12px;}
+.notif-user-av{width:48px;height:48px;border-radius:50%;background:var(–smoke);border:2px solid var(–ember);font-size:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.notif-item.qa-row{align-items:center;gap:12px;background:#121212;border-bottom:1px solid #1a1a1a;padding:12px 14px;}
+.notif-item.qa-row:hover{background:#181818;}
+.qa-body{flex:1;min-width:0;}
+.qa-title{font-family:‘Barlow Condensed’,sans-serif;font-size:15px;font-weight:700;color:var(–white);line-height:1.2;}
+.qa-sub{font-size:12px;color:var(–ash);margin-top:4px;line-height:1.35;}
+.qa-add{width:40px;height:40px;border-radius:50%;border:1px solid var(–smoke);background:linear-gradient(145deg,#2a1810,var(–rock));color:var(–ember2);font-size:22px;font-weight:300;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s cubic-bezier(0.34,1.3,0.64,1);}
+.qa-add:hover{border-color:var(–ember);background:var(–ember);color:white;transform:scale(1.06);}
+.qa-add:active{transform:scale(.94);}
+.notif-dot{width:7px;height:7px;border-radius:50%;background:var(–ember);flex-shrink:0;margin-top:5px;}
+.notif-dot.read{background:transparent;border:1px solid #333;}
+.notif-text{font-size:12px;color:var(–chalk);line-height:1.4;flex:1;}
+.notif-text strong{color:var(–white);}
+.notif-time{font-size:10px;color:var(–ash);margin-top:2px;}
+.pd-footer{padding:8px 16px 12px;display:flex;gap:8px;}
+.pd-footer-btn{flex:1;background:var(–rock);border:1px solid var(–smoke);border-radius:8px;padding:8px;font-family:‘Barlow Condensed’,sans-serif;font-size:12px;letter-spacing:1px;color:var(–silver);cursor:pointer;text-transform:uppercase;transition:all .18s;text-align:center;}
+.pd-footer-btn:hover{border-color:var(–ember);color:var(–ember);}
+.pd-footer-btn.red{border-color:#3a1a1a;color:#e05a5a;}
+.pd-footer-btn.red:hover{background:#1a0a0a;}
+
+/* ══ NAV BAR ══ */
+.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(8,8,8,0.97);backdrop-filter:blur(20px);border-top:1px solid #1c1c1c;display:flex;z-index:100;padding:4px 0 26px;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0;cursor:pointer;border:none;background:none;color:var(–ash);font-family:‘Barlow Condensed’,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;transition:color .18s;position:relative;}
+.nav-item.active{color:var(–ember);}
+.nav-item .ni{font-size:22px;line-height:1;}
+.nav-item.games-nav{color:#b83808;}
+.games-pip{position:absolute;top:7px;right:calc(50% - 20px);width:7px;height:7px;border-radius:50%;background:var(–gold);border:1.5px solid #080808;animation:pip 2s ease-in-out infinite;}
+@keyframes pip{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.7;}}
+
+/* ══ FAB ══ */
+.fab{position:fixed;bottom:84px;right:calc(50% - 215px + 16px);width:50px;height:50px;background:var(–ember);border-radius:50%;border:none;color:white;font-size:26px;cursor:pointer;box-shadow:0 6px 24px rgba(200,64,10,.5);transition:all .22s cubic-bezier(0.34,1.4,0.64,1);display:flex;align-items:center;justify-content:center;z-index:60;}
+.fab:hover{background:var(–ember2);transform:scale(1.1);}
+.fab.rotated{transform:rotate(45deg)!important;}
+
+/* ══ CALENDAR SCREEN ══ */
+.header{flex-shrink:0;padding:48px 22px 0;background:var(–cave);position:relative;z-index:10;}
+.header-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.month-name{font-family:‘Bebas Neue’,sans-serif;font-size:46px;line-height:.9;letter-spacing:3px;}
+.month-year{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;letter-spacing:4px;color:var(–ash);margin-top:4px;}
+.month-arrows{display:flex;gap:6px;}
+.arrow-btn{width:40px;height:40px;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;color:var(–silver);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.arrow-btn:hover{background:var(–smoke);color:var(–white);}
+.arrow-btn:active{transform:scale(.93);}
+.cal-week-panel{flex-shrink:0;padding:0 22px;}
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:4px;}
+.week-cell{min-height:76px;border-radius:12px;border:1px solid #222;background:var(–stone);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 2px 6px;cursor:pointer;transition:all .18s cubic-bezier(0.34,1.2,0.64,1);position:relative;overflow:hidden;}
+.week-cell:hover{border-color:#333;background:#1a1a1a;}
+.week-cell:active{transform:scale(.96);}
+.week-cell.today{border-color:var(–ember);box-shadow:0 0 0 1px rgba(200,64,10,.25);}
+.week-cell.selected{background:linear-gradient(180deg,rgba(200,64,10,.2),var(–stone));border-color:var(–ember);}
+.week-cell .w-dow{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;letter-spacing:2px;color:var(–ash);text-transform:uppercase;}
+.week-cell .w-num{font-family:‘Bebas Neue’,sans-serif;font-size:20px;letter-spacing:1px;line-height:1;margin-top:2px;color:var(–chalk);}
+.week-cell.selected .w-num{color:var(–white);}
+.week-cell .w-ics{display:flex;flex-wrap:wrap;justify-content:center;gap:1px;margin-top:5px;max-width:100%;}
+.week-cell .w-ic{font-size:11px;line-height:1;opacity:.95;}
+.cal-pull-bump{width:100%;border:none;background:transparent;padding:6px 0 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(–ash);transition:color .18s;}
+.cal-pull-bump:hover{color:var(–silver);}
+.cal-pull-line{width:36px;height:5px;background:#333;border-radius:3px;box-shadow:0 6px 0 #2a2a2a;}
+.cal-pull-hint{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;}
+.cal-full{overflow:hidden;transition:max-height .38s cubic-bezier(0.34,1.1,0.64,1),opacity .25s ease;max-height:520px;opacity:1;}
+.cal-full.collapsed{max-height:0;opacity:0;pointer-events:none;}
+.day-labels{display:grid;grid-template-columns:repeat(7,1fr);padding:0 22px;margin-bottom:6px;flex-shrink:0;}
+.day-lbl{text-align:center;font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:2px;color:var(–ash);padding:4px 0;}
+.cal-scroll{flex-shrink:0;padding:0 22px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .16s cubic-bezier(0.34,1.3,0.64,1);border:1px solid transparent;background:transparent;overflow:hidden;}
+.cal-cell:hover{background:var(–rock);border-color:var(–smoke);transform:scale(1.05);}
+.cal-cell:active{transform:scale(.94);}
+.cal-cell.other{opacity:.28;cursor:default;pointer-events:none;}
+.cell-num{font-family:‘Barlow Condensed’,sans-serif;font-size:17px;font-weight:600;color:var(–silver);line-height:1;}
+.cal-cell:not(.other):hover .cell-num{color:var(–white);}
+.cal-cell.today{background:var(–smoke);border-color:#3a3a3a;}
+.cal-cell.today .cell-num{color:var(–white);}
+.cal-cell.selected{background:var(–ember)!important;border-color:var(–ember2)!important;box-shadow:0 4px 18px rgba(200,64,10,.45);transform:scale(1.08)!important;}
+.cal-cell.selected .cell-num{color:white!important;}
+.cal-cell.bday-selected{background:var(–gold)!important;border-color:var(–gold2)!important;box-shadow:0 4px 18px rgba(196,154,10,.45);transform:scale(1.08)!important;}
+.cal-cell.bday-selected .cell-num{color:#000!important;}
+.cell-icons{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:4px;min-height:16px;max-width:100%;}
+.cell-ic{font-size:12px;line-height:1;display:inline-flex;}
+.cal-cell.has-bday::before{content:’’;position:absolute;inset:2px;border-radius:6px;border:1px solid rgba(196,154,10,.25);pointer-events:none;}
+.cell-bday-av{position:absolute;top:1px;right:1px;width:13px;height:13px;border-radius:50%;border:1px solid var(–gold);font-size:8px;display:flex;align-items:center;justify-content:center;background:var(–smoke);}
+.grid-enter{animation:gridReveal .38s ease both;}
+@keyframes gridReveal{from{opacity:0;transform:scale(.97) translateY(4px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.panel-divider{flex-shrink:0;height:1px;background:linear-gradient(90deg,transparent,var(–smoke) 20%,var(–smoke) 80%,transparent);margin:12px 22px;}
+.events-panel{flex:1;overflow-y:auto;padding:0 22px 100px;scrollbar-width:none;}
+.events-panel::-webkit-scrollbar{display:none;}
+.panel-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;}
+.panel-date{font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:2px;}
+.panel-count{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:2px;color:var(–ash);text-transform:uppercase;}
+.section-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:3px;color:var(–ash);text-transform:uppercase;margin:4px 0 10px;display:flex;align-items:center;gap:8px;}
+.section-lbl::after{content:’’;flex:1;height:1px;background:#1e1e1e;}
+
+/* Event cards */
+.event-card{background:var(–stone);border:1px solid #1e1e1e;border-radius:12px;margin-bottom:9px;overflow:hidden;cursor:pointer;transition:all .2s cubic-bezier(0.34,1.2,0.64,1);animation:slideIn .26s ease both;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.event-card:hover{border-color:#2e2e2e;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.event-card-inner{display:flex;align-items:stretch;}
+.event-stripe{width:4px;flex-shrink:0;border-radius:12px 0 0 12px;}
+.stripe-ember{background:linear-gradient(180deg,var(–ember2),var(–ember));}
+.stripe-gold{background:linear-gradient(180deg,var(–gold2),var(–gold));}
+.stripe-teal{background:linear-gradient(180deg,#0fb09a,var(–teal));}
+.stripe-purple{background:linear-gradient(180deg,#8a5fc0,var(–purple));}
+.event-main{flex:1;padding:13px 13px 13px 15px;display:flex;align-items:center;gap:11px;}
+.event-emoji{font-size:26px;flex-shrink:0;}
+.event-info{flex:1;min-width:0;}
+.event-title{font-family:‘Barlow Condensed’,sans-serif;font-size:16px;font-weight:700;color:var(–white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-sub{font-size:11px;color:var(–ash);margin-top:3px;display:flex;align-items:center;gap:5px;}
+.event-sub-sep{color:#333;}
+.event-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.av-cluster{display:flex;}
+.av-b{width:24px;height:24px;border-radius:50%;border:2px solid var(–stone);font-size:13px;display:flex;align-items:center;justify-content:center;margin-left:-7px;background:var(–smoke);}
+.av-b:first-child{margin-left:0;}
+.av-b.more{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;color:var(–ash);background:#1c1c1c;}
+.pill{border-radius:20px;padding:5px 11px;font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:1px solid;transition:all .2s;white-space:nowrap;}
+.pill-going{background:rgba(200,64,10,.15);border-color:var(–ember);color:var(–ember2);}
+.pill-going:hover{background:var(–ember);color:white;}
+.pill-out{background:transparent;border-color:var(–smoke);color:var(–ash);}
+.pill-out:hover{border-color:#444;color:var(–silver);}
+.bday-card-special{background:linear-gradient(135deg,#1a1200,#141400 60%,var(–stone))!important;border-color:rgba(196,154,10,.2)!important;}
+.bday-av-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2a1500,#1a1000);border:2px solid var(–gold);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+
+/* Suggest cards */
+.suggest-card{background:var(–stone);border:1px solid rgba(10,140,122,.2);border-radius:12px;margin-bottom:9px;overflow:hidden;animation:slideIn .28s ease both;}
+.suggest-inner{display:flex;}
+.suggest-stripe{width:4px;flex-shrink:0;border-radius:12px 0 0 12px;background:linear-gradient(180deg,#0fb09a,var(–teal));}
+.suggest-body{flex:1;padding:13px 13px 13px 15px;}
+.suggest-tag{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:2px;color:var(–teal);text-transform:uppercase;margin-bottom:3px;}
+.suggest-title{font-family:‘Barlow Condensed’,sans-serif;font-size:16px;font-weight:700;color:var(–white);margin-bottom:4px;}
+.suggest-desc{font-size:12px;color:var(–ash);margin-bottom:10px;line-height:1.4;}
+.date-vote-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:2px;color:var(–ash);text-transform:uppercase;margin-bottom:7px;}
+.date-opt{background:#0d0d0d;border:1px solid #222;border-radius:8px;padding:9px 11px;margin-bottom:6px;cursor:pointer;transition:all .18s;}
+.date-opt.voted{border-color:var(–teal);background:rgba(10,140,122,.08);}
+.date-opt:hover{border-color:#333;}
+.date-opt-row{display:flex;align-items:center;justify-content:space-between;}
+.date-opt-date{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;font-weight:700;color:var(–white);}
+.date-opt-day{font-size:10px;color:var(–ash);margin-top:1px;}
+.date-opt-right{display:flex;align-items:center;gap:8px;}
+.date-voter-avs{display:flex;}
+.date-voter-av{width:18px;height:18px;border-radius:50%;border:1.5px solid var(–stone);font-size:10px;display:flex;align-items:center;justify-content:center;margin-left:-4px;background:var(–smoke);}
+.date-voter-av:first-child{margin-left:0;}
+.vote-cnt{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;color:var(–ash);}
+.vote-cnt.lead{color:var(–teal);}
+.vote-btn{border:1px solid #333;background:transparent;border-radius:6px;padding:4px 9px;font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:1.5px;color:var(–ash);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.vote-btn:hover,.vote-btn.voted{background:var(–teal);border-color:var(–teal);color:white;}
+.date-bar-wrap{height:2px;background:#1a1a1a;border-radius:2px;margin-top:7px;}
+.date-bar{height:100%;border-radius:2px;background:var(–teal);transition:width .4s ease;}
+
+/* ══ THE GUYS SCREEN ══ */
+#screen-guys{background:var(–cave);}
+.guys-scroll{flex:1;overflow-y:auto;padding:0 20px 100px;scrollbar-width:none;}
+.guys-scroll::-webkit-scrollbar{display:none;}
+
+/* Birthday section banner */
+.bday-banner{background:linear-gradient(135deg,#1a1200,#111);border:1px solid rgba(196,154,10,.25);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.bday-banner-icon{font-size:32px;filter:drop-shadow(0 2px 8px rgba(196,154,10,.4));}
+.bday-banner-text{}
+.bday-banner-name{font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:2px;color:var(–gold);}
+.bday-banner-sub{font-size:12px;color:var(–ash);margin-top:1px;}
+.bday-banner-days{margin-left:auto;background:var(–gold);color:#000;font-family:‘Bebas Neue’,sans-serif;font-size:18px;letter-spacing:1px;padding:6px 11px;border-radius:8px;text-align:center;}
+.bday-banner-days small{display:block;font-family:‘Barlow’,sans-serif;font-size:9px;letter-spacing:1.5px;color:rgba(0,0,0,.6);}
+
+/* Guy card */
+.guy-card{background:var(–stone);border:1px solid #1e1e1e;border-radius:12px;padding:14px 16px;margin-bottom:9px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s;}
+.guy-card:hover{border-color:#2e2e2e;transform:translateX(3px);}
+.guy-av{width:46px;height:46px;border-radius:50%;background:var(–smoke);border:2px solid #2a2a2a;font-size:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+.guy-av.has-badge::after{content:’’;position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(–stone);font-size:8px;display:flex;align-items:center;justify-content:center;}
+.guy-info{flex:1;min-width:0;}
+.guy-name{font-family:‘Barlow Condensed’,sans-serif;font-size:17px;font-weight:700;color:var(–white);}
+.guy-vibe{font-size:11px;color:var(–ash);margin-top:1px;}
+.guy-bday-pill{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:1px;color:var(–gold);background:rgba(196,154,10,.1);border:1px solid rgba(196,154,10,.2);border-radius:12px;padding:2px 8px;margin-top:4px;display:inline-block;}
+.guy-actions{display:flex;gap:7px;flex-shrink:0;}
+.poke-btn{width:34px;height:34px;background:var(–rock);border:1px solid var(–smoke);border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.poke-btn:hover{border-color:var(–ember);transform:scale(1.1);}
+.poke-btn:active{transform:scale(.9);}
+.reward-btn{width:34px;height:34px;background:rgba(196,154,10,.1);border:1px solid rgba(196,154,10,.25);border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.reward-btn:hover{background:rgba(196,154,10,.2);border-color:var(–gold);}
+
+/* ══ PROFILE SHEET (full bottom sheet for a guy) ══ */
+.profile-sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:400;align-items:flex-end;}
+.profile-sheet-overlay.open{display:flex;}
+.profile-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ps-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 0;flex-shrink:0;}
+.ps-hero{padding:20px 22px;background:linear-gradient(180deg,#1f0e05,#111);border-bottom:1px solid #1e1e1e;flex-shrink:0;}
+.ps-hero-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.ps-av{width:64px;height:64px;border-radius:50%;border:3px solid var(–ember);background:var(–smoke);font-size:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ps-av.gold-border{border-color:var(–gold);}
+.ps-hero-info{flex:1;}
+.ps-name{font-family:‘Bebas Neue’,sans-serif;font-size:30px;letter-spacing:3px;line-height:1;}
+.ps-vibe{font-size:12px;color:var(–ember);margin-top:2px;}
+.ps-bday{font-size:12px;color:var(–ash);margin-top:3px;}
+.ps-stats-row{display:flex;gap:8px;}
+.ps-stat{flex:1;background:var(–rock);border:1px solid var(–smoke);border-radius:8px;padding:9px 8px;text-align:center;}
+.ps-stat-n{font-family:‘Bebas Neue’,sans-serif;font-size:22px;color:var(–ember);line-height:1;}
+.ps-stat-l{font-size:9px;color:var(–ash);font-family:‘Barlow Condensed’,sans-serif;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.ps-scroll{flex:1;overflow-y:auto;padding:18px 22px;scrollbar-width:none;}
+.ps-scroll::-webkit-scrollbar{display:none;}
+.ps-section-title{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:3px;color:var(–ash);text-transform:uppercase;margin-bottom:12px;}
+
+/* Rewards / badges animated */
+.badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
+.badge-item{background:var(–rock);border:1px solid var(–smoke);border-radius:10px;padding:10px 6px;text-align:center;cursor:default;transition:all .2s;}
+.badge-item:hover{border-color:#3a3a3a;transform:translateY(-2px);}
+.badge-emoji{font-size:26px;display:block;margin-bottom:4px;animation:badge-float 3s ease-in-out infinite;}
+.badge-emoji:nth-child(1){animation-delay:0s;}
+.badge-item:nth-child(2) .badge-emoji{animation-delay:.4s;}
+.badge-item:nth-child(3) .badge-emoji{animation-delay:.8s;}
+.badge-item:nth-child(4) .badge-emoji{animation-delay:1.2s;}
+.badge-item:nth-child(5) .badge-emoji{animation-delay:.2s;}
+.badge-item:nth-child(6) .badge-emoji{animation-delay:.6s;}
+@keyframes badge-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+.badge-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:9px;letter-spacing:1px;color:var(–ash);text-transform:uppercase;line-height:1.2;}
+.badge-item.rare{border-color:rgba(196,154,10,.35);background:rgba(196,154,10,.06);}
+.badge-item.rare .badge-lbl{color:var(–gold);}
+
+/* Send reward button */
+.send-reward-btn{width:100%;background:linear-gradient(135deg,#1a1000,#1f0e05);border:1px solid rgba(196,154,10,.3);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;margin-bottom:14px;}
+.send-reward-btn:hover{border-color:var(–gold);box-shadow:0 4px 20px rgba(196,154,10,.2);}
+.send-reward-text{font-family:‘Bebas Neue’,sans-serif;font-size:20px;letter-spacing:2px;color:var(–gold);}
+.send-reward-sub{font-size:11px;color:var(–ash);margin-top:1px;}
+.poke-big-btn{width:100%;background:var(–rock);border:1px solid var(–smoke);border-radius:12px;padding:13px;font-family:‘Bebas Neue’,sans-serif;font-size:20px;letter-spacing:2px;color:var(–silver);cursor:pointer;transition:all .2s;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.poke-big-btn:hover{border-color:var(–ember);color:var(–ember);}
+
+/* ══ REWARD PICKER SHEET ══ */
+.reward-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:600;align-items:flex-end;}
+.reward-overlay.open{display:flex;}
+.reward-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;padding:0 22px 48px;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.reward-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 18px;}
+.reward-sheet-title{font-family:‘Bebas Neue’,sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;}
+.reward-sub{font-size:13px;color:var(–ash);margin-bottom:18px;}
+.rewards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.reward-opt{background:var(–rock);border:1px solid var(–smoke);border-radius:12px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .2s;}
+.reward-opt:hover,.reward-opt.sel{border-color:var(–gold);background:rgba(196,154,10,.08);transform:scale(1.05);}
+.reward-opt-emoji{font-size:28px;display:block;margin-bottom:5px;}
+.reward-opt-name{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:1px;color:var(–ash);text-transform:uppercase;}
+.reward-opt.sel .reward-opt-name{color:var(–gold);}
+.reward-send-btn{width:100%;background:var(–gold);color:#000;border:none;border-radius:12px;padding:14px;font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;opacity:.4;pointer-events:none;}
+.reward-send-btn.ready{opacity:1;pointer-events:all;box-shadow:0 4px 20px rgba(196,154,10,.35);}
+.reward-send-btn.ready:hover{transform:scale(1.02);}
+
+/* ══ ADD GUY SHEET ══ */
+.add-guy-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:600;align-items:flex-end;}
+.add-guy-overlay.open{display:flex;}
+.add-guy-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:430px;margin:0 auto;padding:0 22px 48px;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);}
+.ag-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:10px auto 18px;}
+.ag-title{font-family:‘Bebas Neue’,sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:16px;}
+.ag-label{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:2px;color:var(–ash);text-transform:uppercase;display:block;margin-bottom:6px;}
+.ag-input{width:100%;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:12px 14px;color:var(–white);font-family:‘Barlow’,sans-serif;font-size:15px;transition:border-color .18s;-webkit-appearance:none;margin-bottom:14px;}
+.ag-input:focus{outline:none;border-color:var(–ember);}
+.ag-input::placeholder{color:#333;}
+.ag-emoji-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.ag-emoji{width:40px;height:40px;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.ag-emoji:hover,.ag-emoji.sel{border-color:var(–ember);background:#1f0e05;}
+.ag-invite-methods{display:flex;gap:8px;margin-bottom:20px;}
+.ag-method{flex:1;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .18s;}
+.ag-method:hover{border-color:var(–ember);}
+.ag-method-icon{font-size:22px;margin-bottom:4px;}
+.ag-method-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:1px;color:var(–ash);text-transform:uppercase;}
+.ag-submit{width:100%;background:var(–ember);color:white;border:none;border-radius:12px;padding:14px;font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(200,64,10,.35);}
+.ag-submit:hover{background:var(–ember2);}
+
+/* ══ GAMES SCREEN ══ */
+.games-header{padding:52px 22px 20px;background:linear-gradient(180deg,#1a0800,var(–cave));flex-shrink:0;position:relative;}
+.games-close-btn{position:absolute;top:52px;right:22px;width:36px;height:36px;background:var(–rock);border:1px solid var(–smoke);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+.games-logo{font-family:‘Bebas Neue’,sans-serif;font-size:40px;letter-spacing:3px;line-height:1;}
+.games-logo span{color:var(–ember);}
+.games-sub{font-family:‘Barlow Condensed’,sans-serif;font-size:12px;letter-spacing:3px;color:var(–ash);margin-bottom:12px;}
+.season-badge{display:inline-flex;align-items:center;gap:6px;background:#1a1000;border:1px solid rgba(196,154,10,.3);border-radius:20px;padding:5px 12px;font-family:‘Barlow Condensed’,sans-serif;font-size:12px;letter-spacing:2px;color:var(–gold);text-transform:uppercase;}
+.s-dot{width:6px;height:6px;border-radius:50%;background:var(–gold);animation:pip 1.8s ease-in-out infinite;}
+.lb-strip{display:flex;gap:8px;overflow-x:auto;padding:14px 22px 4px;scrollbar-width:none;flex-shrink:0;}
+.lb-strip::-webkit-scrollbar{display:none;}
+.lb-card{flex-shrink:0;width:82px;background:var(–stone);border:1px solid #222;border-radius:12px;padding:10px 8px;text-align:center;}
+.lb-card.r1{background:linear-gradient(135deg,#1a1200,#111);border-color:rgba(196,154,10,.4);}
+.lb-rank{font-family:‘Bebas Neue’,sans-serif;font-size:12px;letter-spacing:1px;margin-bottom:3px;}
+.lb-rank.gold{color:var(–gold);}.lb-rank.silver{color:#aaa;}.lb-rank.bronze{color:#c87040;}.lb-rank.reg{color:var(–ash);}
+.lb-av{width:32px;height:32px;border-radius:50%;margin:0 auto 3px;border:2px solid #333;background:var(–smoke);font-size:20px;display:flex;align-items:center;justify-content:center;}
+.lb-name{font-family:‘Barlow Condensed’,sans-serif;font-size:12px;font-weight:700;}
+.lb-pts{font-size:10px;color:var(–ash);margin-top:1px;}
+.lb-pts strong{color:var(–ember);font-size:12px;}
+.games-scroll{flex:1;overflow-y:auto;padding:14px 22px 100px;scrollbar-width:none;}
+.games-scroll::-webkit-scrollbar{display:none;}
+.game-card{background:var(–stone);border:1px solid #1e1e1e;border-radius:14px;margin-bottom:11px;cursor:pointer;overflow:hidden;transition:all .2s;}
+.game-card:hover{border-color:#2e2e2e;transform:translateY(-2px);}
+.game-card-inner{display:flex;}
+.ga{width:5px;flex-shrink:0;border-radius:14px 0 0 14px;}
+.ga-ember{background:linear-gradient(180deg,#ff6030,var(–ember));}.ga-gold{background:linear-gradient(180deg,var(–gold2),var(–gold));}.ga-teal{background:linear-gradient(180deg,#20d0b0,var(–teal));}.ga-purple{background:linear-gradient(180deg,#9060d0,var(–purple));}
+.game-body{flex:1;padding:14px 14px 14px 16px;}
+.game-name-row{display:flex;align-items:center;gap:9px;margin-bottom:3px;}
+.g-icon{font-size:24px;}.g-name{font-family:‘Bebas Neue’,sans-serif;font-size:21px;letter-spacing:2px;line-height:1;}
+.g-tag{font-size:12px;color:var(–ash);line-height:1.4;margin-bottom:8px;}
+.g-meta{display:flex;gap:7px;flex-wrap:wrap;}
+.g-chip{background:#0d0d0d;border:1px solid #222;border-radius:20px;padding:3px 9px;font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:1px;color:var(–silver);text-transform:uppercase;display:flex;align-items:center;gap:3px;}
+.g-chip.live{border-color:rgba(200,64,10,.4);color:var(–ember);}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(–ember);animation:pip 1.4s ease-in-out infinite;}
+.ac-wrap{background:linear-gradient(135deg,#1f0e05,#141414);border:1px solid rgba(200,64,10,.25);border-radius:14px;padding:16px;margin-bottom:14px;}
+.ac-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:3px;color:var(–ember);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+.ac-q{font-family:‘Bebas Neue’,sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1.1;margin-bottom:12px;}
+.ac-opts{display:flex;flex-direction:column;gap:7px;}
+.ac-opt{background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 14px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between;font-family:‘Barlow Condensed’,sans-serif;font-size:14px;color:var(–chalk);}
+.ac-opt:hover{border-color:var(–ember);}.ac-opt.picked{background:rgba(200,64,10,.12);border-color:var(–ember);}
+.ac-opt-odds{font-size:10px;color:var(–ash);}
+.ac-footer{margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.ac-footer-text{font-size:11px;color:var(–ash);}
+.ac-submit{background:var(–ember);border:none;border-radius:7px;padding:7px 16px;font-family:‘Bebas Neue’,sans-serif;font-size:16px;letter-spacing:2px;color:white;cursor:pointer;opacity:.4;pointer-events:none;}
+.ac-submit.ready{opacity:1;pointer-events:all;}
+
+/* ══ NEW EVENT SHEET ══ */
+.ne-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;align-items:flex-end;}
+.ne-overlay.open{display:flex;}
+.ne-sheet{background:#111;border:1px solid #222;border-bottom:none;border-radius:22px 22px 0 0;padding:0 0 48px;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .33s cubic-bezier(0.34,1.1,0.64,1);max-height:92vh;display:flex;flex-direction:column;}
+.ne-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:11px auto 0;}
+.ne-header{padding:14px 22px 12px;border-bottom:1px solid #1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.ne-title{font-family:‘Bebas Neue’,sans-serif;font-size:26px;letter-spacing:2px;}
+.ne-close{width:30px;height:30px;background:var(–rock);border:1px solid var(–smoke);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+.ne-scroll{flex:1;overflow-y:auto;padding:16px 22px 0;scrollbar-width:none;}
+.ne-scroll::-webkit-scrollbar{display:none;}
+.ne-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:2px;color:var(–ash);text-transform:uppercase;display:block;margin-bottom:6px;}
+.ne-input{width:100%;background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 13px;color:var(–white);font-family:‘Barlow’,sans-serif;font-size:14px;transition:border-color .18s;-webkit-appearance:none;margin-bottom:14px;}
+.ne-input:focus{outline:none;border-color:var(–ember);}
+.ne-input::placeholder{color:#2e2e2e;}
+textarea.ne-input{resize:none;height:64px;line-height:1.5;}
+.ne-type-row{display:flex;gap:7px;margin-bottom:14px;}
+.type-btn{flex:1;padding:9px 4px;background:var(–rock);border:1px solid var(–smoke);border-radius:9px;cursor:pointer;text-align:center;transition:all .18s;}
+.type-btn.sel{background:#1f0e05;border-color:var(–ember);}
+.type-btn-icon{font-size:18px;display:block;margin-bottom:3px;}
+.type-btn-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:1px;color:var(–ash);text-transform:uppercase;}
+.type-btn.sel .type-btn-lbl{color:var(–ember);}
+.emoji-strip{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;}
+.e-pick{width:38px;height:38px;background:var(–rock);border:1px solid var(–smoke);border-radius:9px;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.e-pick:hover,.e-pick.sel{border-color:var(–ember);background:#1f0e05;}
+.ne-date-row{display:flex;gap:9px;margin-bottom:14px;}
+.ne-date-row .ne-input{flex:1;margin-bottom:0;}
+.ne-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:#0d0d0d;border:1px solid #222;border-radius:9px;margin-bottom:14px;cursor:pointer;}
+.toggle-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:13px;color:var(–chalk);}
+.toggle-sub{font-size:10px;color:var(–ash);margin-top:2px;}
+.tog{width:40px;height:22px;background:#222;border-radius:11px;position:relative;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(–teal);}
+.tog::after{content:’’;position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);}
+.tog.on::after{transform:translateX(18px);}
+.poll-date-rows{margin-bottom:7px;}
+.poll-row{display:flex;gap:8px;margin-bottom:8px;}
+.poll-row .ne-input{flex:1;margin-bottom:0;}
+.ne-poll-add{background:transparent;border:1px dashed #2a2a2a;border-radius:9px;padding:9px;color:var(–ash);font-family:‘Barlow Condensed’,sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;width:100%;cursor:pointer;transition:all .18s;margin-bottom:14px;}
+.ne-poll-add:hover{border-color:#444;color:var(–silver);}
+.invite-strip{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px;}
+.inv-chip{display:flex;align-items:center;gap:5px;background:var(–rock);border:1px solid var(–smoke);border-radius:20px;padding:5px 11px 5px 7px;cursor:pointer;transition:all .18s;}
+.inv-chip:hover,.inv-chip.sel{border-color:var(–ember);background:#1a0a04;}
+.inv-av{font-size:17px;}
+.inv-name{font-family:‘Barlow Condensed’,sans-serif;font-size:12px;color:var(–chalk);}
+.inv-chip.sel .inv-name{color:var(–ember);}
+.ne-submit{width:calc(100% - 44px);margin:14px 22px 0;background:var(–ember);color:white;border:none;border-radius:12px;padding:15px;font-family:‘Bebas Neue’,sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(200,64,10,.35);flex-shrink:0;}
+.ne-submit:hover{background:var(–ember2);}
+
+/* ══ DETAIL MODAL ══ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);z-index:500;align-items:flex-end;}
+.overlay.open{display:flex;}
+.sheet{background:#141414;border:1px solid #242424;border-bottom:none;border-radius:20px 20px 0 0;padding:10px 24px 48px;width:100%;max-width:430px;margin:0 auto;animation:sheetUp .3s cubic-bezier(0.34,1.1,0.64,1);max-height:85vh;overflow-y:auto;}
+.sheet::-webkit-scrollbar{display:none;}
+.sh-handle{width:36px;height:4px;background:#2a2a2a;border-radius:2px;margin:8px auto 18px;}
+.sh-type{font-family:‘Barlow Condensed’,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:5px;}
+.sh-title{font-family:‘Bebas Neue’,sans-serif;font-size:32px;letter-spacing:2px;line-height:1;margin-bottom:5px;}
+.sh-date{font-size:13px;color:var(–ash);margin-bottom:18px;}
+.sh-div{height:1px;background:#1e1e1e;margin:14px 0;}
+.sh-body{font-size:13px;color:#999;line-height:1.65;}
+.who-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:10px;letter-spacing:2px;color:var(–ash);margin-bottom:9px;text-transform:uppercase;}
+.who-grid{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+.who-chip{display:flex;align-items:center;gap:5px;background:var(–rock);border:1px solid var(–smoke);border-radius:20px;padding:5px 11px 5px 6px;font-size:12px;color:var(–chalk);}
+.who-av-sm{width:22px;height:22px;border-radius:50%;background:var(–smoke);font-size:13px;display:flex;align-items:center;justify-content:center;}
+.sh-rsvp-row{display:flex;gap:9px;}
+.btn-going{flex:1;background:var(–ember);color:white;border:none;border-radius:10px;padding:13px;font-family:‘Bebas Neue’,sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;transition:all .18s;box-shadow:0 4px 14px rgba(200,64,10,.35);}
+.btn-going:hover{background:var(–ember2);}
+.btn-cant{background:var(–rock);border:1px solid var(–smoke);color:var(–silver);border-radius:10px;padding:13px 16px;font-family:‘Barlow Condensed’,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .18s;}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:#1c1c1c;border:1px solid #2e2e2e;border-left:3px solid var(–ember);color:var(–chalk);padding:9px 16px;border-radius:8px;font-family:‘Barlow Condensed’,sans-serif;font-size:13px;opacity:0;transition:all .24s;z-index:9000;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     CALENDAR SCREEN
+═══════════════════════════════════ -->
+
+<div id="screen-cal" class="screen active">
+  <div class="header">
+    <div class="header-row1">
+      <div class="wordmark">MAN<em>CAVE</em></div>
+      <div class="top-actions">
+        <div class="icon-btn" onclick="toast('🔍 Search')">🔍</div>
+        <div class="profile-wrap">
+          <div class="profile-btn" id="profile-btn" onclick="toggleProfile()">🧔</div>
+          <div class="notif-badge" id="notif-badge">5</div>
+          <div class="profile-dropdown" id="profile-dropdown">
+            <div class="pd-head">
+              <div class="pd-av-circle">🧔</div>
+              <div><div class="pd-name">BIG MIKE</div><div class="pd-vibe">🔥 The BBQ King</div></div>
+            </div>
+            <div class="pd-score-row">
+              <div class="pd-score-brand">Cave Cred</div>
+              <div class="pd-score-val">2,847<span class="pd-score-spark">⚡</span></div>
+              <div class="pd-score-sub"><strong>14 hangs</strong> logged · The cave runs on showing up</div>
+            </div>
+            <div class="notif-section-label">Notifications</div>
+            <div class="notif-item from-user unread" onclick="toast('👊 Opening poke from Marcus')">
+              <div class="notif-user-av">🤠</div>
+              <div class="notif-text"><strong>Marcus</strong> poked you 👊<div class="notif-time">2 hours ago</div></div>
+            </div>
+            <div class="notif-item from-user unread" onclick="toast('🎂 Happy birthday Marcus!')">
+              <div class="notif-user-av">🤠</div>
+              <div class="notif-text"><strong>Marcus's 40th</strong> is in 4 days 🎂<div class="notif-time">Today</div></div>
+            </div>
+            <div class="notif-item" onclick="toast('🏆 Nice badge!')">
+              <div class="notif-dot read"></div>
+              <div class="notif-text">You earned the <strong>3-Event Streak</strong> badge 🔥<div class="notif-time">Yesterday</div></div>
+            </div>
+            <div class="notif-item qa-row" onclick="openNEFromTemplate('bbq')">
+              <div class="qa-body">
+                <div class="qa-title">🔥 Summer BBQ</div>
+                <div class="qa-sub">Grab some meat with the boys and a cookout — Dave usually runs point. Tap + to spin up a date poll.</div>
+              </div>
+              <button type="button" class="qa-add" onclick="event.stopPropagation();openNEFromTemplate('bbq')" aria-label="Set up BBQ poll">+</button>
+            </div>
+            <div class="notif-item qa-row" onclick="openNEFromTemplate('footy')">
+              <div class="qa-body">
+                <div class="qa-title">⚽ 5-a-Side</div>
+                <div class="qa-sub">Dust off the boots — Marcus has been chirping about Riverside. One tap to float dates to the group.</div>
+              </div>
+              <button type="button" class="qa-add" onclick="event.stopPropagation();openNEFromTemplate('footy')" aria-label="Propose football dates">+</button>
+            </div>
+            <div class="notif-item qa-row" onclick="openGameQuestion()">
+              <div class="qa-body">
+                <div class="qa-title">🧠 Cave Trivia</div>
+                <div class="qa-sub">Roast the crew with a custom question — first right answer buys the next round.</div>
+              </div>
+              <button type="button" class="qa-add" onclick="event.stopPropagation();openGameQuestion()" aria-label="Add trivia question">+</button>
+            </div>
+            <div class="pd-footer">
+              <div class="pd-footer-btn" onclick="toast('👤 Edit Profile')">Edit Profile</div>
+              <div class="pd-footer-btn red" onclick="toast('🚪 Leaving...')">Leave Cave</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="month-nav">
+      <div>
+        <div class="month-name" id="month-name">APRIL</div>
+        <div class="month-year" id="month-year">2026 · THE CAVE</div>
+      </div>
+      <div class="month-arrows">
+        <button class="arrow-btn" onclick="changeMonth(-1)">‹</button>
+        <button class="arrow-btn" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+  </div>
+  <div class="cal-week-panel">
+    <div class="week-strip" id="week-strip"></div>
+    <button type="button" class="cal-pull-bump" id="cal-pull" aria-expanded="false" aria-controls="cal-full" onclick="toggleCalExpand()">
+      <span class="cal-pull-line" aria-hidden="true"></span>
+      <span class="cal-pull-hint" id="cal-pull-hint">Full calendar</span>
+    </button>
+  </div>
+  <div class="cal-full collapsed" id="cal-full">
+    <div class="day-labels">
+      <div class="day-lbl">S</div><div class="day-lbl">M</div><div class="day-lbl">T</div>
+      <div class="day-lbl">W</div><div class="day-lbl">T</div><div class="day-lbl">F</div><div class="day-lbl">S</div>
+    </div>
+    <div class="cal-scroll"><div class="cal-grid grid-enter" id="cal-grid"></div></div>
+  </div>
+  <div class="panel-divider"></div>
+  <div class="events-panel" id="events-panel"></div>
+</div>
+
+<!-- ═══════════════════════════════════
+     THE GUYS SCREEN
+═══════════════════════════════════ -->
+
+<div id="screen-guys" class="screen">
+  <div class="top-bar">
+    <div class="top-row">
+      <div class="wordmark">THE <em>GUYS</em></div>
+      <div class="top-actions">
+        <div class="icon-btn" onclick="toast('🔍 Search guys')">🔍</div>
+        <div class="icon-btn" style="background:var(--ember);border-color:var(--ember);color:white;font-size:20px" onclick="openAddGuy()">+</div>
+      </div>
+    </div>
+  </div>
+  <div class="guys-scroll" id="guys-scroll"></div>
+</div>
+
+<!-- ═══════════════════════════════════
+     CAVE GAMES SCREEN
+═══════════════════════════════════ -->
+
+<div id="screen-games" class="screen">
+  <div class="games-header">
+    <div class="games-logo">CAVE<span>GAMES</span></div>
+    <div class="games-sub">Season 3 · April 2026</div>
+    <div class="season-badge"><div class="s-dot"></div>League Active · 8 Players</div>
+  </div>
+  <div class="lb-strip" id="lb-strip"></div>
+  <div style="height:1px;background:linear-gradient(90deg,transparent,var(--smoke) 20%,var(--smoke) 80%,transparent);margin:10px 22px 0;flex-shrink:0;"></div>
+  <div class="games-scroll">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin:14px 0 10px;">🔴 Live Challenge</div>
+    <div class="ac-wrap">
+      <div class="ac-lbl"><div class="live-dot"></div>NFL Draft Prediction · Closes Apr 24</div>
+      <div class="ac-q">Who gets the #1 pick in the 2026 NFL Draft?</div>
+      <div class="ac-opts" id="draft-opts">
+        <div class="ac-opt" onclick="pickOpt(this)"><span>Shedeur Sanders</span><span class="ac-opt-odds">2× pts</span></div>
+        <div class="ac-opt" onclick="pickOpt(this)"><span>Cam Ward</span><span class="ac-opt-odds">1.5× pts</span></div>
+        <div class="ac-opt" onclick="pickOpt(this)"><span>Travis Hunter</span><span class="ac-opt-odds">3× pts</span></div>
+        <div class="ac-opt" onclick="pickOpt(this)"><span>Other</span><span class="ac-opt-odds">4× pts</span></div>
+      </div>
+      <div class="ac-footer"><div class="ac-footer-text">6 of 8 locked in</div><button class="ac-submit" id="ac-submit" onclick="submitPick()">LOCK IT IN</button></div>
+    </div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--ash);text-transform:uppercase;margin-bottom:10px;">All Games</div>
+    <div class="game-card" onclick="toast('🏆 Prediction League')"><div class="game-card-inner"><div class="ga ga-ember"></div><div class="game-body"><div class="game-name-row"><div class="g-icon">🏆</div><div class="g-name">Prediction League</div></div><div class="g-tag">Call it before it happens. Points for accuracy, bonus for boldness.</div><div class="g-meta"><div class="g-chip live"><div class="live-dot"></div>Live</div><div class="g-chip">6 active</div></div></div></div></div>
+    <div class="game-card" onclick="toast('🎲 Dare Board')"><div class="game-card-inner"><div class="ga ga-gold"></div><div class="game-body"><div class="game-name-row"><div class="g-icon">🎲</div><div class="g-name">Dare Board</div></div><div class="g-tag">Issue dares, complete at next event, crowd votes. Legends made.</div><div class="g-meta"><div class="g-chip">3 open dares</div></div></div></div></div>
+    <div class="game-card" onclick="openGameQuestion()"><div class="game-card-inner"><div class="ga ga-teal"></div><div class="game-body"><div class="game-name-row"><div class="g-icon">🧠</div><div class="g-name">Cave Trivia</div></div><div class="g-tag">Weekly trivia drop. First to answer wins. Drop your own question.</div><div class="g-meta"><div class="g-chip">Drops Mondays</div><div class="g-chip live"><div class="live-dot"></div>Add Q</div></div></div></div></div>
+    <div class="game-card" onclick="toast('🤔 Who\'d Rather')"><div class="game-card-inner"><div class="ga ga-purple"></div><div class="game-body"><div class="game-name-row"><div class="g-icon">🤔</div><div class="g-name">Who'd Rather</div></div><div class="g-tag">Group votes on hypotheticals about each other. Always revealing.</div><div class="g-meta"><div class="g-chip">🔥 Most played</div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+
+<nav class="nav-bar" id="nav-bar">
+  <button class="nav-item active" id="nav-cal" onclick="showScreen('cal')">
+    <span class="ni">📅</span>CALENDAR
+  </button>
+  <button class="nav-item" id="nav-guys" onclick="showScreen('guys')">
+    <span class="ni">👊</span>THE GUYS
+  </button>
+  <button class="nav-item games-nav" id="nav-games" onclick="showScreen('games')">
+    <div class="games-pip"></div><span class="ni">🎯</span>CAVE GAMES
+  </button>
+</nav>
+
+<button class="fab" id="fab" onclick="openNewEvent()">+</button>
+
+<!-- ═══ PROFILE SHEET (member) ═══ -->
+
+<div class="profile-sheet-overlay" id="ps-overlay" onclick="closeProfileSheet()">
+  <div class="profile-sheet" onclick="event.stopPropagation()">
+    <div class="ps-handle"></div>
+    <div id="ps-content"></div>
+  </div>
+</div>
+
+<!-- ═══ REWARD PICKER ═══ -->
+
+<div class="reward-overlay" id="reward-overlay" onclick="closeReward()">
+  <div class="reward-sheet" onclick="event.stopPropagation()">
+    <div class="reward-handle"></div>
+    <div class="reward-sheet-title" id="reward-title">SEND A REWARD</div>
+    <div class="reward-sub" id="reward-sub">Pick a badge to send to the guy</div>
+    <div class="rewards-grid" id="rewards-grid"></div>
+    <button class="reward-send-btn" id="reward-send-btn" onclick="sendReward()">SEND IT 🏆</button>
+  </div>
+</div>
+
+<!-- ═══ ADD GUY SHEET ═══ -->
+
+<div class="add-guy-overlay" id="add-guy-overlay" onclick="closeAddGuy()">
+  <div class="add-guy-sheet" onclick="event.stopPropagation()">
+    <div class="ag-handle"></div>
+    <div class="ag-title">ADD A GUY</div>
+    <label class="ag-label">Name</label>
+    <input class="ag-input" type="text" placeholder="What's his name?">
+    <label class="ag-label">Birthday</label>
+    <input class="ag-input" type="date">
+    <label class="ag-label">Pick his vibe</label>
+    <div class="ag-emoji-row">
+      <div class="ag-emoji sel" onclick="selAgEmoji(this)">🔥</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🍺</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🏈</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🎮</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🔧</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🃏</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🤠</div>
+      <div class="ag-emoji" onclick="selAgEmoji(this)">🧔</div>
+    </div>
+    <label class="ag-label">Invite via</label>
+    <div class="ag-invite-methods">
+      <div class="ag-method" onclick="toast('📱 Opening SMS...')"><div class="ag-method-icon">💬</div><div class="ag-method-lbl">Text</div></div>
+      <div class="ag-method" onclick="toast('📧 Opening Email...')"><div class="ag-method-icon">📧</div><div class="ag-method-lbl">Email</div></div>
+      <div class="ag-method" onclick="toast('🔗 Link copied!')"><div class="ag-method-icon">🔗</div><div class="ag-method-lbl">Link</div></div>
+    </div>
+    <button class="ag-submit" onclick="submitAddGuy()">INVITE HIM TO THE CAVE 🔥</button>
+  </div>
+</div>
+
+<!-- ═══ NEW EVENT SHEET ═══ -->
+
+<div class="ne-overlay" id="ne-overlay" onclick="closeNE()">
+  <div class="ne-sheet" onclick="event.stopPropagation()">
+    <div class="ne-handle"></div>
+    <div class="ne-header">
+      <div class="ne-title">NEW EVENT</div>
+      <div class="ne-close" onclick="closeNE()">✕</div>
+    </div>
+    <div class="ne-scroll">
+      <div style="margin-bottom:13px"><label class="ne-lbl">Type</label>
+        <div class="ne-type-row">
+          <div class="type-btn sel" onclick="selType(this,'🃏')"><span class="type-btn-icon">🃏</span><span class="type-btn-lbl">Event</span></div>
+          <div class="type-btn" onclick="selType(this,'🎂')"><span class="type-btn-icon">🎂</span><span class="type-btn-lbl">Birthday</span></div>
+          <div class="type-btn" onclick="selType(this,'🍺')"><span class="type-btn-icon">🍺</span><span class="type-btn-lbl">Hangout</span></div>
+          <div class="type-btn" onclick="selType(this,'🏆')"><span class="type-btn-icon">🏆</span><span class="type-btn-lbl">Challenge</span></div>
+        </div>
+      </div>
+      <div style="margin-bottom:13px"><label class="ne-lbl">Icon</label>
+        <div class="emoji-strip">
+          <div class="e-pick sel" onclick="selEmoji(this)">🃏</div><div class="e-pick" onclick="selEmoji(this)">🍺</div>
+          <div class="e-pick" onclick="selEmoji(this)">🔥</div><div class="e-pick" onclick="selEmoji(this)">🏈</div>
+          <div class="e-pick" onclick="selEmoji(this)">🎱</div><div class="e-pick" onclick="selEmoji(this)">🎮</div>
+          <div class="e-pick" onclick="selEmoji(this)">⚽</div><div class="e-pick" onclick="selEmoji(this)">🍕</div>
+          <div class="e-pick" onclick="selEmoji(this)">🎲</div><div class="e-pick" onclick="selEmoji(this)">🏕️</div>
+        </div>
+      </div>
+      <label class="ne-lbl">Event Name</label>
+      <input class="ne-input" id="ne-name-input" type="text" placeholder="e.g. Poker Night at Dave's">
+      <label class="ne-lbl">Details</label>
+      <textarea class="ne-input" placeholder="What's the plan?"></textarea>
+      <div class="ne-toggle-row" onclick="toggleDatePoll()">
+        <div><div class="toggle-lbl">📅 Let the guys vote on a date</div><div class="toggle-sub">Add options, crew votes</div></div>
+        <div class="tog" id="date-tog"></div>
+      </div>
+      <div id="fixed-date">
+        <div class="ne-date-row">
+          <div style="flex:1"><label class="ne-lbl">Date</label><input class="ne-input" type="date" value="2026-04-15"></div>
+          <div style="flex:1"><label class="ne-lbl">Time</label><input class="ne-input" type="time" value="19:00"></div>
+        </div>
+        <label class="ne-lbl">Location</label>
+        <input class="ne-input" type="text" placeholder="e.g. Dave's place">
+      </div>
+      <div id="poll-date" style="display:none">
+        <label class="ne-lbl">Date Options</label>
+        <div class="poll-date-rows" id="poll-rows">
+          <div class="poll-row"><input class="ne-input" type="date" value="2026-04-11" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0"></div>
+          <div class="poll-row" style="margin-top:8px"><input class="ne-input" type="date" value="2026-04-18" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0"></div>
+        </div>
+        <button class="ne-poll-add" onclick="addPollRow()">+ Add Another Date</button>
+        <label class="ne-lbl">Location</label>
+        <input class="ne-input" type="text" placeholder="e.g. Dave's place">
+      </div>
+      <label class="ne-lbl">Invite the Guys</label>
+      <div class="invite-strip" id="invite-strip">
+        <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🤠</span><span class="inv-name">Marcus</span></div>
+        <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🧢</span><span class="inv-name">Jake</span></div>
+        <div class="inv-chip sel" onclick="toggleInv(this)"><span class="inv-av">🔥</span><span class="inv-name">Dave</span></div>
+        <div class="inv-chip" onclick="toggleInv(this)"><span class="inv-av">👨‍🦲</span><span class="inv-name">Dez</span></div>
+        <div class="inv-chip" onclick="toggleInv(this)"><span class="inv-av">🧔</span><span class="inv-name">Tony</span></div>
+      </div>
+    </div>
+    <button class="ne-submit" onclick="submitNE()">DROP IT IN THE CAVE 🔥</button>
+  </div>
+</div>
+
+<!-- ═══ GAME QUESTION SHEET ═══ -->
+
+<div class="overlay" id="gq-overlay" onclick="document.getElementById('gq-overlay').classList.remove('open')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-handle"></div>
+    <div class="sh-type" style="color:var(--teal)">🧠 Cave Trivia · Add a Question</div>
+    <div class="sh-title">DROP YOUR QUESTION</div>
+    <div class="sh-div"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin-bottom:10px;">Canned Templates</div>
+    <div id="q-templates"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--ash);text-transform:uppercase;margin:14px 0 10px;">Or Write Your Own</div>
+    <input class="ne-input" type="text" placeholder="Who in the group is most likely to..." style="margin-bottom:14px">
+    <input class="ne-input" type="text" placeholder="Answer A" style="margin-bottom:8px">
+    <input class="ne-input" type="text" placeholder="Answer B" style="margin-bottom:8px">
+    <input class="ne-input" type="text" placeholder="Answer C" style="margin-bottom:14px">
+    <div class="sh-rsvp-row">
+      <button class="btn-going" onclick="toast('🧠 Question added to the Cave!');document.getElementById('gq-overlay').classList.remove('open')">SEND TO THE CAVE</button>
+      <button class="btn-cant" onclick="document.getElementById('gq-overlay').classList.remove('open')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EVENT DETAIL MODAL ═══ -->
+
+<div class="overlay" id="overlay" onclick="closeModal()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh-handle"></div>
+    <div id="sheet-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────
+const MEMBERS = {
+  dave:   {name:'Dave',   av:'🔥', full:'Dave Kowalski',    vibe:'🔥 The BBQ King',    bday:'Nov 12', events:23, streak:11, badges:['🔥','🏆','👑','🍺','🎲','🏅'], isOrganiser:true},
+  marcus: {name:'Marcus', av:'🤠', full:'Marcus Thompson',  vibe:'🍺 The Beer Guy',    bday:'Mar 29', events:18, streak:7,  badges:['🍺','🎯','💪','🔥'], isBdaySoon:true},
+  jake:   {name:'Jake',   av:'🧢', full:'Jake Rivera',      vibe:'🏈 The Sports Fan',  bday:'Apr 3',  events:14, streak:5,  badges:['🏈','🎯','⚡']},
+  tony:   {name:'Tony',   av:'🧔', full:'Tony Morales',     vibe:'🃏 The Card Shark',  bday:'Apr 18', events:16, streak:4,  badges:['🃏','😈','🏅']},
+  dez:    {name:'Dez',    av:'👨‍🦲', full:'Dez Washington',   vibe:'🔧 The Handyman',   bday:'Apr 27', events:11, streak:3,  badges:['🔧','💪']},
+};
+const REWARDS = [
+  {emoji:'🔥',name:'On Fire'},{emoji:'🏆',name:'Champion'},{emoji:'💪',name:'Solid Guy'},
+  {emoji:'🍺',name:'First Round'},{emoji:'👑',name:'The King'},{emoji:'😈',name:'Savage'},
+  {emoji:'🎯',name:'Dead Aim'},{emoji:'⚡',name:'Clutch'},{emoji:'🏅',name:'OG'},
+  {emoji:'🤣',name:'Comic'},{emoji:'👊',name:'Ride or Die'},{emoji:'🦁',name:'The Lion'},
+];
+const Q_TEMPLATES = [
+  {q:'Who in the group would survive a zombie apocalypse longest?', type:'who'},
+  {q:'Who is most likely to show up late to their own funeral?', type:'who'},
+  {q:'Who has the worst taste in movies?', type:'who'},
+  {q:'Which guy would you want in your corner in a fight?', type:'who'},
+  {q:'Who is secretly the best cook in the group?', type:'who'},
+  {q:'Finish this: "You know it\'s Marcus when he..."', type:'personal'},
+];
+const EVENTS_DATA = {
+  '2026-4-3':  [{type:'bday',emoji:'🎂',title:"Jake's 35th Birthday",  sub:'All day · Jake Rivera',    stripe:'stripe-gold', color:'gold', detail:'jake', bdayMember:'jake'}],
+  '2026-4-5':  [{type:'event',emoji:'🃏',title:"Poker Night @ Dave's", sub:'7:00 PM · Dave\'s Place',  stripe:'stripe-ember',color:'ember',detail:'poker'}],
+  '2026-4-12': [{type:'event',emoji:'🍺',title:'Craft Brewery Run',     sub:'2:00 PM · Downtown',       stripe:'stripe-teal', color:'teal', detail:'brew'}],
+  '2026-4-18': [{type:'bday',emoji:'🎂',title:"Tony's Birthday",       sub:'All day · Tony Morales',   stripe:'stripe-gold', color:'gold', detail:'tony', bdayMember:'tony'}],
+  '2026-4-19': [{type:'event',emoji:'🔥',title:'Backyard Bonfire',      sub:'8:00 PM · Marcus\'s',      stripe:'stripe-ember',color:'ember',detail:'fire'}],
+  '2026-4-24': [{type:'event',emoji:'🏈',title:'NFL Draft Watch Party', sub:'8:00 PM · Carlos\'s',      stripe:'stripe-purple',color:'purple',detail:'nfl'}],
+  '2026-4-27': [{type:'bday',emoji:'🎂',title:"Dez's Birthday",        sub:'All day · Dez Washington',  stripe:'stripe-gold', color:'gold', detail:'dez', bdayMember:'dez'}],
+  '2026-3-29': [{type:'bday',emoji:'🎂',title:"Marcus's 40th Birthday",sub:'All day · Marcus Thompson',stripe:'stripe-gold', color:'gold', detail:'marcus',bdayMember:'marcus'}],
+  '2026-5-9':  [{type:'bday',emoji:'🎂',title:"Dave's Birthday",       sub:'All day · Dave Kowalski',   stripe:'stripe-gold', color:'gold', detail:'dave', bdayMember:'dave'}],
+  '2026-5-25': [{type:'event',emoji:'🔥',title:'Memorial Day BBQ',      sub:'1:00 PM · Dave\'s',         stripe:'stripe-ember',color:'ember',detail:'bbq'}],
+};
+const DETAILS = {
+  poker: {title:"Poker Night @ Dave's",  date:'Sat, Apr 5 · 7:00 PM',    type:'🃏 Event',   body:'Buy-in: $20. Smoked wings. BYOB. Loser washes up.',   attendees:['dave','marcus','jake','tony','dez'],extra:3,going:true},
+  jake:  {title:"Jake's 35th Birthday", date:'Fri, Apr 3 · All Day',     type:'🎂 Birthday',body:'Jake Rivera turns 35. Gift fund open — $10/person to Marcus.',attendees:['dave','marcus','tony','dez'],extra:0,going:false},
+  tony:  {title:"Tony's Birthday",      date:'Sat, Apr 18 · All Day',    type:'🎂 Birthday',body:"Tony's turning another year older. He wants steak.",    attendees:['dave','marcus','jake'],extra:0,going:false},
+  brew:  {title:'Craft Brewery Run',    date:'Sun, Apr 12 · 2:00 PM',    type:'🍺 Event',   body:'3 breweries downtown. Uber it.',                        attendees:['marcus','jake','dez'],extra:2,going:false},
+  fire:  {title:'Backyard Bonfire',     date:'Sun, Apr 19 · 8:00 PM',    type:'🔥 Event',   body:"Marcus's backyard. Fire pit, cornhole, mystery meat.", attendees:['dave','jake','tony','dez'],extra:1,going:false},
+  nfl:   {title:'NFL Draft Watch Party',date:'Thu, Apr 24 · 8:00 PM',    type:'🏈 Event',   body:"Carlos's place. Big screen, draft boards, trash talk.",attendees:['dave','marcus','jake','tony'],extra:2,going:false},
+  dez:   {title:"Dez's Birthday",       date:'Mon, Apr 27 · All Day',    type:'🎂 Birthday',body:"Dez doesn't make a big deal of birthdays — hence we must.", attendees:['dave','marcus','jake'],extra:0,going:false},
+  marcus:{title:"Marcus's 40th",        date:'Sun, Mar 29 · All Day',    type:'🎂 Birthday · THE BIG ONE',body:'Marcus is hitting 40. Vegas hint was dropped. Act fast.',attendees:['dave','jake','tony','dez'],extra:1,going:true},
+  dave:  {title:"Dave's Birthday",      date:'Sat, May 9 · All Day',     type:'🎂 Birthday',body:"The organiser's own birthday. Someone else plans this one.", attendees:['marcus','jake','tony','dez'],extra:0,going:false},
+  bbq:   {title:'Memorial Day BBQ',     date:'Mon, May 25 · 1:00 PM',    type:'🔥 Event',   body:"Dave's annual blowout. Brisket starts 6am.",             attendees:['dave','marcus','jake','tony','dez'],extra:3,going:true},
+};
+const SUGGESTED=[
+  {emoji:'⚽',title:'5-a-Side Football',desc:"Marcus wants a game at Riverside Park.",dateOpts:[
+    {date:'Sat May 3',day:'10:00 AM',voters:['dave','marcus'],votes:2},
+    {date:'Sat May 10',day:'10:00 AM',voters:['jake','tony','dez'],votes:3},
+    {date:'Sun May 18',day:'2:00 PM',voters:['marcus'],votes:1},
+  ]},
+  {emoji:'🎱',title:'Pool Tournament',desc:"The Anchor Bar has the back room on reserve.",dateOpts:[
+    {date:'Fri May 16',day:'7:00 PM',voters:['dave','jake'],votes:2},
+    {date:'Sat May 17',day:'6:00 PM',voters:['marcus','tony','dez','dave'],votes:4},
+  ]},
+];
+const myVotes={};
+
+// ─── STATE ──────────────────────────────────────────
+let curYear=2026,curMonth=4,selectedDay=5;
+const TODAY_D=5,TODAY_M=4,TODAY_Y=2026;
+const MONTHS=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+let rewardTarget='';
+function normNoon(d){const x=new Date(d);x.setHours(12,0,0,0);return x;}
+let weekStart=normNoon(new Date(TODAY_Y,TODAY_M-1,TODAY_D));
+let calExpanded=false;
+const WEEK_DOW=['S','M','T','W','T','F','S'];
+
+// ─── SCREEN NAV ─────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='guys') renderGuys();
+  if(id==='games') buildLB();
+  // FAB only on calendar
+  document.getElementById('fab').style.display = id==='cal' ? 'flex' : 'none';
+}
+
+// ─── CALENDAR ────────────────────────────────────────
+function toggleCalExpand(){
+  calExpanded=!calExpanded;
+  const full=document.getElementById('cal-full');
+  const hint=document.getElementById('cal-pull-hint');
+  const pull=document.getElementById('cal-pull');
+  full.classList.toggle('collapsed',!calExpanded);
+  pull.setAttribute('aria-expanded',calExpanded);
+  hint.textContent=calExpanded?'Hide calendar':'Full calendar';
+}
+function renderWeekStrip(){
+  const strip=document.getElementById('week-strip');
+  if(!strip)return;
+  strip.innerHTML='';
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart);
+    d.setDate(weekStart.getDate()+i);
+    const y=d.getFullYear(),mo=d.getMonth()+1,day=d.getDate();
+    const key=`${y}-${mo}-${day}`;
+    const evs=EVENTS_DATA[key]||[];
+    const isToday=y===TODAY_Y&&mo===TODAY_M&&day===TODAY_D;
+    const isSel=y===curYear&&mo===curMonth&&day===selectedDay;
+    const cell=document.createElement('button');
+    cell.type='button';
+    cell.className='week-cell'+(isToday?' today':'')+(isSel?' selected':'');
+    const ics=document.createElement('span');
+    ics.className='w-ics';
+    evs.slice(0,3).forEach(ev=>{
+      const em=ev.type==='bday'?'🎂':(ev.type==='suggest'?'💡':(ev.emoji||'📌'));
+      const sp=document.createElement('span');sp.className='w-ic';sp.textContent=em;ics.appendChild(sp);
+    });
+    cell.innerHTML=`<span class="w-dow">${WEEK_DOW[d.getDay()]}</span><span class="w-num">${day}</span>`;
+    cell.appendChild(ics);
+    cell.onclick=()=>{curYear=y;curMonth=mo;selectedDay=day;renderCalendar();};
+    strip.appendChild(cell);
+  }
+}
+function renderCalendar(){
+  renderWeekStrip();
+  const full=document.getElementById('cal-full');
+  const pull=document.getElementById('cal-pull');
+  const hint=document.getElementById('cal-pull-hint');
+  if(full){full.classList.toggle('collapsed',!calExpanded);}
+  if(pull){pull.setAttribute('aria-expanded',calExpanded);}
+  if(hint){hint.textContent=calExpanded?'Hide calendar':'Full calendar';}
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML=''; grid.classList.remove('grid-enter');
+  void grid.offsetWidth; grid.classList.add('grid-enter');
+  document.getElementById('month-name').textContent=MONTHS[curMonth-1];
+  document.getElementById('month-year').textContent=`${curYear} · THE CAVE`;
+  const firstDay=new Date(curYear,curMonth-1,1).getDay();
+  const dim=new Date(curYear,curMonth,0).getDate();
+  const prev=new Date(curYear,curMonth-1,0).getDate();
+  for(let i=firstDay-1;i>=0;i--) grid.appendChild(mkCell(prev-i,true));
+  for(let d=1;d<=dim;d++){
+    const key=`${curYear}-${curMonth}-${d}`;
+    const evs=EVENTS_DATA[key]||[];
+    const bday=evs.find(e=>e.type==='bday');
+    grid.appendChild(mkCell(d,false,d===TODAY_D&&curMonth===TODAY_M&&curYear===TODAY_Y,d===selectedDay,evs,bday,d));
+  }
+  const rem=(firstDay+dim)%7;
+  for(let i=1;i<=(rem?7-rem:0);i++) grid.appendChild(mkCell(i,true));
+  renderEvents();
+}
+function mkCell(n,other,isToday,isSel,evs,bdayEv,dn){
+  const el=document.createElement('div');
+  el.className='cal-cell';
+  if(other) el.classList.add('other');
+  if(isToday) el.classList.add('today');
+  const hasBday=evs&&evs.some(e=>e.type==='bday');
+  if(hasBday) el.classList.add('has-bday');
+  if(isSel) el.classList.add(hasBday?'bday-selected':'selected');
+  if(hasBday&&bdayEv?.bdayMember){
+    const m=MEMBERS[bdayEv.bdayMember];
+    if(m){const b=document.createElement('div');b.className='cell-bday-av';b.textContent=m.av;el.appendChild(b);}
+  }
+  const ne=document.createElement('div');ne.className='cell-num';ne.textContent=n;el.appendChild(ne);
+  if(evs&&evs.length){
+    const icons=document.createElement('div');icons.className='cell-icons';
+    evs.slice(0,4).forEach(ev=>{
+      const em=ev.type==='bday'?'🎂':(ev.type==='suggest'?'💡':(ev.emoji||'📌'));
+      const ic=document.createElement('span');ic.className='cell-ic';ic.textContent=em;icons.appendChild(ic);
+    });
+    el.appendChild(icons);
+  }
+  if(!other&&dn) el.onclick=()=>{
+    selectedDay=dn;
+    const sDate=normNoon(new Date(curYear,curMonth-1,selectedDay));
+    const w0=normNoon(new Date(weekStart));
+    const w6=new Date(w0);w6.setDate(w0.getDate()+6);
+    if(sDate<w0||sDate>w6) weekStart=normNoon(new Date(curYear,curMonth-1,selectedDay));
+    renderCalendar();
+  };
+  return el;
+}
+function renderEvents(){
+  const panel=document.getElementById('events-panel');
+  const key=`${curYear}-${curMonth}-${selectedDay}`;
+  const evs=EVENTS_DATA[key]||[];
+  const dateStr=new Date(curYear,curMonth-1,selectedDay).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  let html='';
+  if(evs.length){
+    html+=`<div class="panel-header"><div class="panel-date">${dateStr.toUpperCase()}</div><div class="panel-count">${evs.length} item${evs.length>1?'s':''}</div></div>`;
+    evs.forEach((ev,i)=>{ html+=evCardHTML(ev,i); });
+    html+=`<div class="section-lbl" style="margin-top:10px">Suggested</div>`;
+    SUGGESTED.forEach((sg,si)=>{ html+=suggestHTML(sg,si); });
+  } else {
+    html+=`<div class="panel-header"><div class="panel-date">${dateStr.toUpperCase()}</div><div class="panel-count" style="color:#333">Free</div></div>`;
+    html+=`<div class="section-lbl">All Upcoming</div>`;
+    const all=[];
+    Object.entries(EVENTS_DATA).forEach(([k,arr])=>{
+      const[y,m,d]=k.split('-').map(Number);
+      const dt=new Date(y,m-1,d);
+      if(dt>new Date(curYear,curMonth-1,selectedDay)) arr.forEach(ev=>all.push({ev,dt,m,d}));
+    });
+    all.sort((a,b)=>a.dt-b.dt);
+    let lastM='';
+    all.forEach(({ev,dt,m,d},i)=>{
+      const ml=MONTHS[m-1].slice(0,3)+' '+dt.getFullYear();
+      if(ml!==lastM){html+=`<div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:#333;text-transform:uppercase;margin:10px 0 7px;">${ml}</div>`;lastM=ml;}
+      html+=evCardHTML(ev,i,`${MONTHS[m-1].slice(0,3)} ${d}`);
+    });
+    html+=`<div class="section-lbl" style="margin-top:14px">Suggested by the Guys</div>`;
+    SUGGESTED.forEach((sg,si)=>{ html+=suggestHTML(sg,si); });
+  }
+  panel.innerHTML=html;
+}
+function evCardHTML(ev,idx,dateOvr){
+  const det=DETAILS[ev.detail]||{};
+  const isBday=ev.type==='bday';
+  const timePart=dateOvr?`<span>${dateOvr}</span><span class="event-sub-sep">·</span>`:'';
+  const loc=ev.sub.split('·').slice(1).join('·').trim();
+  let avs='<div class="av-cluster">';
+  (det.attendees||[]).slice(0,4).forEach(mid=>{const m=MEMBERS[mid];if(m)avs+=`<div class="av-b">${m.av}</div>`;});
+  if(det.extra>0)avs+=`<div class="av-b more">+${det.extra}</div>`;
+  avs+='</div>';
+  const bdayAvatar=isBday&&ev.bdayMember?`<div class="bday-av-circle">${MEMBERS[ev.bdayMember]?.av||ev.emoji}</div>`:`<div class="event-emoji">${ev.emoji}</div>`;
+  return `<div class="event-card ${isBday?'bday-card-special':''}" style="animation-delay:${idx*.05}s" onclick="openModal('${ev.detail}')">
+    <div class="event-card-inner"><div class="event-stripe ${ev.stripe}"></div>
+    <div class="event-main">${bdayAvatar}
+      <div class="event-info"><div class="event-title">${ev.title}</div>
+        <div class="event-sub">${timePart}<span>${loc}</span></div></div>
+      <div class="event-right">${avs}
+        <button class="pill ${det.going?'pill-going':'pill-out'}" onclick="event.stopPropagation();toggleRsvp(this,'${ev.detail}')">${det.going?'GOING ✓':'RSVP'}</button>
+      </div></div></div></div>`;
+}
+function suggestHTML(sg,si){
+  const maxV=Math.max(...sg.dateOpts.map(o=>o.votes),1);
+  const myV=myVotes[si];
+  let dates='';
+  sg.dateOpts.forEach((opt,oi)=>{
+    const lead=opt.votes===maxV;
+    const pct=Math.round((opt.votes/maxV)*100);
+    const voted=myV===oi;
+    const avs=opt.voters.slice(0,3).map(mid=>`<div class="date-voter-av">${MEMBERS[mid]?.av||'👤'}</div>`).join('');
+    dates+=`<div class="date-opt ${voted?'voted':''}" onclick="event.stopPropagation()">
+      <div class="date-opt-row">
+        <div><div class="date-opt-date">${opt.date}</div><div class="date-opt-day">${opt.day}</div></div>
+        <div class="date-opt-right">
+          <div class="date-voter-avs">${avs}</div>
+          <span class="vote-cnt ${lead?'lead':''}">${opt.votes}v</span>
+          <button class="vote-btn ${voted?'voted':''}" onclick="castVote(${si},${oi},this)">${voted?'✓':'VOTE'}</button>
+        </div>
+      </div>
+      <div class="date-bar-wrap"><div class="date-bar" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+  return `<div class="suggest-card"><div class="suggest-inner"><div class="suggest-stripe"></div>
+    <div class="suggest-body"><div class="suggest-tag">Suggested Event</div>
+      <div class="suggest-title">${sg.emoji} ${sg.title}</div>
+      <div class="suggest-desc">${sg.desc}</div>
+      <div class="date-vote-lbl">Vote for a date:</div>${dates}
+    </div></div></div>`;
+}
+function castVote(si,oi,btn){
+  const prev=myVotes[si];
+  if(prev===oi) return;
+  if(prev!==undefined) SUGGESTED[si].dateOpts[prev].votes=Math.max(0,SUGGESTED[si].dateOpts[prev].votes-1);
+  SUGGESTED[si].dateOpts[oi].votes++;
+  myVotes[si]=oi;
+  renderEvents();
+  toast('✅ Vote locked in!');
+}
+function changeMonth(dir){
+  curMonth+=dir;
+  if(curMonth>12){curMonth=1;curYear++;} if(curMonth<1){curMonth=12;curYear--;}
+  selectedDay=1;
+  weekStart=normNoon(new Date(curYear,curMonth-1,1));
+  renderCalendar();
+}
+function toggleRsvp(btn,key){
+  const det=DETAILS[key];if(!det)return;
+  det.going=!det.going;
+  btn.className='pill '+(det.going?'pill-going':'pill-out');
+  btn.textContent=det.going?'GOING ✓':'RSVP';
+  toast(det.going?"✅ You're going!":"👋 RSVP removed");
+}
+
+// ─── THE GUYS ────────────────────────────────────────
+function renderGuys(){
+  const scroll=document.getElementById('guys-scroll');
+  let html='<div style="padding-top:14px">';
+  // Upcoming birthdays first
+  const bdaySoon=Object.values(MEMBERS).filter(m=>m.isBdaySoon);
+  if(bdaySoon.length){
+    bdaySoon.forEach(m=>{
+      html+=`<div class="bday-banner">
+        <div class="bday-banner-icon">${m.av}</div>
+        <div class="bday-banner-text">
+          <div class="bday-banner-name">${m.full}</div>
+          <div class="bday-banner-sub">🎂 Birthday · ${m.bday}</div>
+        </div>
+        <div class="bday-banner-days">4<small>DAYS</small></div>
+      </div>`;
+    });
+  }
+  html+=`<div class="section-lbl" style="margin-bottom:12px">The Crew · ${Object.keys(MEMBERS).length} Members</div>`;
+  Object.entries(MEMBERS).forEach(([key,m])=>{
+    html+=`<div class="guy-card" onclick="openProfileSheet('${key}')">
+      <div class="guy-av">${m.av}</div>
+      <div class="guy-info">
+        <div class="guy-name">${m.full}</div>
+        <div class="guy-vibe">${m.vibe}</div>
+        ${m.isBdaySoon?`<div class="guy-bday-pill">🎂 ${m.bday} · Soon!</div>`:`<div class="guy-bday-pill" style="background:transparent;border-color:transparent;color:var(--ash)">🎂 ${m.bday}</div>`}
+      </div>
+      <div class="guy-actions">
+        <div class="poke-btn" title="Poke" onclick="event.stopPropagation();pokeMember('${key}')">👊</div>
+        <div class="reward-btn" title="Send reward" onclick="event.stopPropagation();openReward('${key}')">🏆</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  scroll.innerHTML=html;
+}
+function pokeMember(key){
+  const m=MEMBERS[key];
+  toast(`👊 You poked ${m.name}!`);
+  // Pulse animation
+  event.target.style.transform='scale(0.7)';
+  setTimeout(()=>{ if(event.target) event.target.style.transform=''; },200);
+}
+
+// ─── PROFILE SHEET ───────────────────────────────────
+function openProfileSheet(key){
+  const m=MEMBERS[key];
+  const badgesHTML=m.badges.map((b,i)=>`
+    <div class="badge-item ${i<2?'rare':''}">
+      <span class="badge-emoji">${b}</span>
+      <div class="badge-lbl">${REWARDS.find(r=>r.emoji===b)?.name||'Badge'}</div>
+    </div>`).join('');
+  document.getElementById('ps-content').innerHTML=`
+    <div class="ps-hero">
+      <div class="ps-hero-row">
+        <div class="ps-av ${m.isBdaySoon?'gold-border':''}">${m.av}</div>
+        <div class="ps-hero-info">
+          <div class="ps-name">${m.full.toUpperCase()}</div>
+          <div class="ps-vibe">${m.vibe}</div>
+          <div class="ps-bday">🎂 ${m.bday}</div>
+        </div>
+      </div>
+      <div class="ps-stats-row">
+        <div class="ps-stat"><div class="ps-stat-n">${m.events}</div><div class="ps-stat-l">Events</div></div>
+        <div class="ps-stat"><div class="ps-stat-n">${m.streak}🔥</div><div class="ps-stat-l">Streak</div></div>
+        <div class="ps-stat"><div class="ps-stat-n">${m.badges.length}</div><div class="ps-stat-l">Badges</div></div>
+      </div>
+    </div>
+    <div class="ps-scroll">
+      <div class="ps-section-title">Earned Badges</div>
+      <div class="badges-grid">${badgesHTML}</div>
+      <div class="send-reward-btn" onclick="closeProfileSheet();openReward('${key}')">
+        <span style="font-size:22px">🏆</span>
+        <div><div class="send-reward-text">SEND A REWARD</div><div class="send-reward-sub">Drop a badge on ${m.name}</div></div>
+      </div>
+      <div class="poke-big-btn" onclick="pokeMember('${key}');closeProfileSheet()">
+        👊 GIVE ${m.name.toUpperCase()} A POKE
+      </div>
+    </div>`;
+  document.getElementById('ps-overlay').classList.add('open');
+}
+function closeProfileSheet(){ document.getElementById('ps-overlay').classList.remove('open'); }
+
+// ─── REWARD PICKER ───────────────────────────────────
+function openReward(key){
+  rewardTarget=key;
+  const m=MEMBERS[key];
+  document.getElementById('reward-title').textContent=`SEND ${m.name.toUpperCase()} A REWARD`;
+  document.getElementById('reward-sub').textContent=`Pick a badge to drop on ${m.name}`;
+  document.getElementById('rewards-grid').innerHTML=REWARDS.map((r,i)=>`
+    <div class="reward-opt" onclick="selReward(this)">
+      <span class="reward-opt-emoji">${r.emoji}</span>
+      <div class="reward-opt-name">${r.name}</div>
+    </div>`).join('');
+  document.getElementById('reward-send-btn').classList.remove('ready');
+  document.getElementById('reward-overlay').classList.add('open');
+}
+function selReward(el){
+  document.querySelectorAll('.reward-opt').forEach(r=>r.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('reward-send-btn').classList.add('ready');
+}
+function sendReward(){
+  const m=MEMBERS[rewardTarget];
+  const sel=document.querySelector('.reward-opt.sel');
+  const emoji=sel?sel.querySelector('.reward-opt-emoji').textContent:'🏆';
+  closeReward();
+  toast(`${emoji} Reward sent to ${m.name}!`);
+}
+function closeReward(){ document.getElementById('reward-overlay').classList.remove('open'); }
+
+// ─── ADD GUY ─────────────────────────────────────────
+function openAddGuy(){ document.getElementById('add-guy-overlay').classList.add('open'); }
+function closeAddGuy(){ document.getElementById('add-guy-overlay').classList.remove('open'); }
+function selAgEmoji(el){ document.querySelectorAll('.ag-emoji').forEach(e=>e.classList.remove('sel')); el.classList.add('sel'); }
+function submitAddGuy(){ closeAddGuy(); toast('🔥 Invite sent! Welcome to the Cave.'); }
+
+// ─── GAMES ───────────────────────────────────────────
+const LB=[
+  {n:'MARCUS',av:'🤠',pts:480,rank:'#1',rc:'gold',   cc:'r1'},
+  {n:'MIKE',  av:'🧔',pts:420,rank:'#2',rc:'silver', cc:''},
+  {n:'TONY',  av:'🧔',pts:390,rank:'#3',rc:'bronze', cc:''},
+  {n:'DAVE',  av:'🔥',pts:350,rank:'#4',rc:'reg',    cc:''},
+  {n:'JAKE',  av:'🧢',pts:310,rank:'#5',rc:'reg',    cc:''},
+  {n:'DEZ',   av:'👨‍🦲',pts:270,rank:'#6',rc:'reg',   cc:''},
+];
+function buildLB(){
+  document.getElementById('lb-strip').innerHTML=LB.map(p=>`
+    <div class="lb-card ${p.cc}">
+      <div class="lb-rank ${p.rc}">${p.rank}</div>
+      <div class="lb-av">${p.av}</div>
+      <div class="lb-name">${p.n}</div>
+      <div class="lb-pts"><strong>${p.pts}</strong> pts</div>
+    </div>`).join('');
+}
+function pickOpt(el){
+  document.querySelectorAll('#draft-opts .ac-opt').forEach(o=>o.classList.remove('picked'));
+  el.classList.add('picked');
+  document.getElementById('ac-submit').classList.add('ready');
+}
+function submitPick(){
+  toast('🔒 Pick locked!');
+  document.querySelectorAll('#draft-opts .ac-opt').forEach(o=>{ o.style.pointerEvents='none'; o.style.opacity=o.classList.contains('picked')?'1':'0.4'; });
+  const s=document.getElementById('ac-submit'); s.textContent='LOCKED ✓'; s.style.opacity='.6'; s.style.pointerEvents='none';
+}
+
+// ─── GAME QUESTION ───────────────────────────────────
+function openGameQuestion(){
+  closeProfile();
+  document.getElementById('q-templates').innerHTML=Q_TEMPLATES.map((q,i)=>`
+    <div style="background:#0d0d0d;border:1px solid #222;border-radius:9px;padding:11px 13px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .18s;"
+      onclick="selectQTemplate(this,'${q.q.replace(/'/g,"\\'")}')">
+      <div style="font-size:14px;color:var(--chalk);flex:1;font-family:'Barlow',sans-serif;">${q.q}</div>
+      <button style="background:var(--teal);border:none;border-radius:6px;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;color:white;cursor:pointer;white-space:nowrap;" onclick="event.stopPropagation();selectQTemplate(this.parentElement,'${q.q.replace(/'/g,"\\'")}')">USE</button>
+    </div>`).join('');
+  document.getElementById('gq-overlay').classList.add('open');
+}
+function selectQTemplate(el,q){
+  document.querySelectorAll('#q-templates > div').forEach(d=>d.style.borderColor='#222');
+  el.style.borderColor='var(--teal)';
+  toast('✅ Template selected!');
+}
+
+// ─── NEW EVENT ───────────────────────────────────────
+let datePollOn=false;
+function openNewEvent(){ document.getElementById('ne-overlay').classList.add('open'); document.getElementById('fab').classList.add('rotated'); }
+function closeNE(){ document.getElementById('ne-overlay').classList.remove('open'); document.getElementById('fab').classList.remove('rotated'); }
+function openNEFromTemplate(type){
+  closeProfile();
+  const names={bbq:'Summer BBQ Blowout 🔥',footy:'5-a-Side Football ⚽'};
+  document.getElementById('ne-name-input').value=names[type]||'';
+  datePollOn=true;
+  document.getElementById('date-tog').classList.add('on');
+  document.getElementById('fixed-date').style.display='none';
+  document.getElementById('poll-date').style.display='block';
+  openNewEvent();
+}
+function toggleDatePoll(){
+  datePollOn=!datePollOn;
+  document.getElementById('date-tog').classList.toggle('on',datePollOn);
+  document.getElementById('fixed-date').style.display=datePollOn?'none':'block';
+  document.getElementById('poll-date').style.display=datePollOn?'block':'none';
+}
+function addPollRow(){
+  const r=document.createElement('div'); r.className='poll-row'; r.style.marginTop='8px';
+  r.innerHTML=`<input class="ne-input" type="date" style="flex:1;margin-bottom:0"><input class="ne-input" type="time" value="19:00" style="width:95px;margin-bottom:0">`;
+  document.getElementById('poll-rows').appendChild(r);
+}
+function selType(el,emoji){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('sel')); el.classList.add('sel');
+  const fp=document.querySelector('.e-pick'); if(fp){fp.textContent=emoji;selEmoji(fp);}
+}
+function selEmoji(el){ document.querySelectorAll('.e-pick').forEach(e=>e.classList.remove('sel')); el.classList.add('sel'); }
+function toggleInv(el){ el.classList.toggle('sel'); }
+function submitNE(){ closeNE(); toast('🔥 Event dropped in the Cave!'); }
+
+// ─── PROFILE DROPDOWN ────────────────────────────────
+function toggleProfile(){
+  const btn=document.getElementById('profile-btn');
+  const dd=document.getElementById('profile-dropdown');
+  btn.classList.toggle('open'); dd.classList.toggle('open');
+}
+function closeProfile(){
+  document.getElementById('profile-btn').classList.remove('open');
+  document.getElementById('profile-dropdown').classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  const btn=document.getElementById('profile-btn');
+  const dd=document.getElementById('profile-dropdown');
+  if(btn&&dd&&!btn.contains(e.target)&&!dd.contains(e.target)) closeProfile();
+});
+
+// ─── EVENT DETAIL MODAL ──────────────────────────────
+function openModal(key){
+  const d=DETAILS[key]; if(!d) return;
+  const who=(d.attendees||[]).map(mid=>{const m=MEMBERS[mid];return m?`<div class="who-chip"><div class="who-av-sm">${m.av}</div>${m.name}</div>`:''}).join('')
+    +(d.extra>0?`<div class="who-chip" style="color:var(--ash)">+${d.extra} more</div>`:'');
+  document.getElementById('sheet-content').innerHTML=`
+    <div class="sh-type" style="color:${d.type.includes('Birthday')?'var(--gold)':'var(--ember)'}">${d.type}</div>
+    <div class="sh-title">${d.title}</div><div class="sh-date">📅 ${d.date}</div>
+    <div class="sh-div"></div><div class="sh-body">${d.body}</div>
+    <div class="sh-div"></div><div class="who-lbl">Who's In</div>
+    <div class="who-grid">${who}</div>
+    <div class="sh-rsvp-row">
+      <button class="btn-going" onclick="toast(\"✅ You're in!\");closeModal()">${d.going?"✓ GOING":"COUNT ME IN"}</button>
+      <button class="btn-cant" onclick="toast(\"👋 Can't go\");closeModal()">CAN'T GO</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+
+// ─── TOAST ───────────────────────────────────────────
+function toast(msg){
+  const t=document.getElementById('toast-el');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ─── INIT ─────────────────────────────────────────────
+renderCalendar();
+buildLB();
+(function(){
+  const pull=document.getElementById('cal-pull');
+  if(!pull)return;
+  let sy=0,track=false;
+  pull.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;track=!calExpanded;},{passive:true});
+  pull.addEventListener('touchend',e=>{
+    if(!track)return;
+    const y=e.changedTouches[0]?.clientY??sy;
+    if(y-sy>40&&!calExpanded)toggleCalExpand();
+    track=false;
+  },{passive:true});
+})();
+</script>
+
+</body>
+</html>
